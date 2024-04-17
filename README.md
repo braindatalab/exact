@@ -25,9 +25,9 @@ After running `docker ps`, copy the name of the container with image `{root_fold
 If your root folder is called "evalXai", and you used docker compose to instantiate all containers, you can use the
 same container names we used in the default commands below.
 
-`docker exec -it evalxai-backend-1 python manage.py makemigrations`
+`docker exec -it exact-backend-1 python manage.py makemigrations`
 
-`docker exec -it evalxai-backend-1 python manage.py migrate`
+`docker exec -it exact-backend-1 python manage.py migrate`
 
 Alternatively, if you have the docker desktop app, you can follow these steps:
 
