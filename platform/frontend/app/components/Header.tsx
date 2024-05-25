@@ -3,6 +3,7 @@ import { useState } from "react";
 import TemporaryDrawer from "./TemporaryDrawer";
 import logo_ptb from "@/public/logo_ptb.png";
 import Image from "next/image";
+import Link from 'next/link';
 
 const Header: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -10,6 +11,7 @@ const Header: React.FC = () => {
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
+
   return (
     <header className="bg-gray-800 text-white p-4">
       <div className="container mx-auto flex justify-between items-center">
@@ -34,10 +36,14 @@ const Header: React.FC = () => {
         <input
           type="search"
           placeholder="Search..."
-          className=" px-4 py-2  rounded bg-white text-gray-800"
+          className="px-4 py-2 rounded bg-white text-gray-800"
         />
         <nav className="flex mx-5 space-x-4">
-          <p>Login</p>
+          <Link href="/auth"> {}
+            <a className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+              Login / Sign Up
+            </a>
+          </Link>
           <p>Settings</p>
         </nav>
       </div>
