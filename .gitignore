@@ -1,6 +1,7 @@
 __pycache__/
-worker/venv/
+venv/
 node_modules
 settings.json
 node_modules
 package-lock.json
+.env
