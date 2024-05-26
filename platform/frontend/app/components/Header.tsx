@@ -3,14 +3,23 @@ import { useState } from "react";
 import TemporaryDrawer from "./TemporaryDrawer";
 import logo_ptb from "@/public/logo_ptb.png";
 import Image from "next/image";
-import Link from 'next/link';
+import { Button, Title } from "@mantine/core";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { NO_HEADER_PAGES } from "./utils";
 
-const Header: React.FC = () => {
+const Header = () => {
+  const pathname = usePathname();
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
+
+  if (NO_HEADER_PAGES.includes(pathname)) {
+    return <></>;
+  }
 
   return (
     <header className="bg-gray-800 text-white p-4">
@@ -30,21 +39,33 @@ const Header: React.FC = () => {
           />
         </svg>
         <Image src={logo_ptb} alt="logo" className="bg-white p-2 mx-2 w-40" />
-        <h1 className="text-xl mx-5 font-semibold">
-          Explainable AI Benchmarking Platform
-        </h1>
+        <Link href="/">
+          <Title order={3}>Explainable AI Benchmarking Platform</Title>
+        </Link>
         <input
           type="search"
           placeholder="Search..."
           className="px-4 py-2 rounded bg-white text-gray-800"
         />
         <nav className="flex mx-5 space-x-4">
-          <Link href="/auth"> {}
-            <a className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-              Login / Sign Up
-            </a>
-          </Link>
-          <p>Settings</p>
+          <Button
+            component={Link}
+            href="/login"
+            variant="subtle"
+            radius="xl"
+            size="md"
+          >
+            Sign In
+          </Button>
+          <Button
+            component={Link}
+            href="/register"
+            variant="filled"
+            radius="xl"
+            size="md"
+          >
+            Register
+          </Button>
         </nav>
       </div>
       <TemporaryDrawer
