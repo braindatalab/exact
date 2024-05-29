@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Button,
   Center,
@@ -16,20 +16,16 @@ import { IconArrowLeft, IconExclamationCircle } from "@tabler/icons-react";
 import Link from "next/link";
 import logo from "../components/evalXAI_logo.png";
 import NextImage from "next/image";
-import { AUTHENTICATION_OPTIONS, BASE_URL_API } from "../components/utils";
+import { AUTHENTICATION_OPTIONS } from "../components/utils";
 import { AuthenticationOption } from "../components/types";
-import axios from "axios";
 import { useRouter } from "next/navigation";
-import { useUser, useUserUpdate } from "../components/UserContext";
+import { useClient, useUser, useUserUpdate } from "../components/UserContext";
 
 const Register = () => {
   const router = useRouter();
   const user = useUser();
   const updateUser = useUserUpdate();
-
-  if (user !== null) {
-    router.push("/");
-  }
+  const client = useClient();
 
   const [selectedAuthenticationOption, setSelectedAuthenticationOption] =
     useState<AuthenticationOption | null>(null);
@@ -40,17 +36,19 @@ const Register = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleRegister = async () => {
-    axios
-      .post(`${BASE_URL_API}/login`, {
+  const handleRegister = () => {
+    client
+      .post("register", {
         username,
-        email: `${username}@mail.de`,
+        email,
         password,
       })
-      .then(({ data }) => {
-        const { password, ...userData } = data;
-        updateUser(userData);
-        router.push("/");
+      .then(() => {
+        client.post("login", { username, email, password }).then(({ data }) => {
+          const { password, ...userData } = data;
+          updateUser(userData);
+          router.push("/");
+        });
       })
       .catch((e) => {
         setAuthenticationError(
@@ -58,6 +56,12 @@ const Register = () => {
         );
       });
   };
+
+  useEffect(() => {
+    if (user !== null) {
+      router.push("/");
+    }
+  }, [router, user]);
 
   return (
     <div>

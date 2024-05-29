@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Button,
   Center,
@@ -16,20 +16,17 @@ import { IconArrowLeft, IconExclamationCircle } from "@tabler/icons-react";
 import Link from "next/link";
 import logo from "../components/evalXAI_logo.png";
 import NextImage from "next/image";
-import { AUTHENTICATION_OPTIONS, BASE_URL_API } from "../components/utils";
+import { AUTHENTICATION_OPTIONS } from "../components/utils";
 import { AuthenticationOption } from "../components/types";
-import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useUser, useUserUpdate } from "../components/UserContext";
+import { useClient } from "../components/UserContext";
 
 const Login = () => {
   const router = useRouter();
+  const client = useClient();
   const user = useUser();
   const updateUser = useUserUpdate();
-
-  if (user !== null) {
-    router.push("/");
-  }
 
   const [selectedAuthenticationOption, setSelectedAuthenticationOption] =
     useState<AuthenticationOption | null>(null);
@@ -39,16 +36,16 @@ const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = async () => {
-    axios
-      .post(`${BASE_URL_API}/login`, {
+  const handleLogin = () => {
+    client
+      .post(`/login`, {
         username,
         email: `${username}@mail.de`,
         password,
       })
       .then(({ data }) => {
-        console.log("hihi" + data);
         const { password, ...userData } = data;
+        console.log(data);
         updateUser(userData);
         router.push("/");
       })
@@ -58,6 +55,12 @@ const Login = () => {
         );
       });
   };
+
+  useEffect(() => {
+    if (user !== null) {
+      router.push("/");
+    }
+  }, [router, user]);
 
   return (
     <div>

@@ -15,6 +15,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
 class UserLoginSerializer(serializers.Serializer):
 	email = serializers.EmailField()
+	username = serializers.CharField()
 	password = serializers.CharField()
 	##
 	def check_user(self, clean_data):
