@@ -1,0 +1,16 @@
+<!-- api/templates/api/challenge_form.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Challenge</title>
+</head>
+<body>
+    <h1>Create Challenge</h1>
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>

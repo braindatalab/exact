@@ -1,3 +1,5 @@
+import uuid 
+import os 
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser
@@ -6,7 +8,12 @@ from .models import *
 from .serializers import *
 from .worker_utils import trigger_evaluation_script_inside_worker
 from django.http import HttpResponse
-
+from .forms import ChallengeForm
+from .utils.s3_utils import upload_file_to_amazon
+from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from .models import Challenge, Xaimethod, Dataset, Mlmodel
+from django.shortcuts import render, redirect
 
 @api_view(['POST'])
 @parser_classes([MultiPartParser])
@@ -18,6 +25,8 @@ def xai_detail(request, challenge_id):
         return Response({'error': f'error getting the input file'}, status=status.HTTP_400_BAD_REQUEST)
 
     file_contents = input_file.read().decode('utf-8')
+
+    # initialise a worker on the server that will evaluate the uploaded solution and return a score  
     message = trigger_evaluation_script_inside_worker(file_contents)
 
     return Response({'message': message}, status=status.HTTP_200_OK)
@@ -46,74 +55,185 @@ def score_detail(request, challenge_id):
             serializer.save()
             return Response(data=serializer.data, status=status.HTTP_201_CREATED)
 
-
+# redirect to download the dataset file associated with the challenge_id 
 @api_view(['GET'])
 def dataset_detail(request, challenge_id):
-    # try:
-    #     dataset = Dataset.objects.get(challenge_id=challenge_id)
-    # except Dataset.DoesNotExist:
-    #     return Response(status=status.HTTP_404_NOT_FOUND)
-
-    # serializer = DatasetSerializer(dataset)
-    # return Response(serializer.data)
-    file_path = "./dataset/train_data.pt"
-
     try:
-        with open(file_path, 'rb') as file:
-            data = file.read()
-    except Exception as e:
-        return Response({'error': f'Error reading file: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        dataset = Dataset.objects.get(challenge_id=challenge_id)
+        dataset_url = dataset.dataset_url
+        
+        # Redirect to the dataset URL
+        return redirect(dataset_url)
+    
+    except Dataset.DoesNotExist:
+        return Response({'error': 'Dataset not found'}, status=status.HTTP_404_NOT_FOUND)
 
-    # Set the content type to application/octet-stream to indicate a binary file
-    response = HttpResponse(data, content_type='application/octet-stream')
+# redirect to download the mlmodel file associated with the challenge_id 
+@api_view(['GET'])
+def mlmodel_detail(request, challenge_id):
+    try:
+        mlmodel = Mlmodel.objects.get(challenge_id=challenge_id)
+        mlmodel_url = mlmodel.model_url
+        
+        # Redirect to the dataset URL
+        return redirect(mlmodel_url)
+    
+    except Dataset.DoesNotExist:
+        return Response({'error': 'Machine learning Model not found'}, status=status.HTTP_404_NOT_FOUND)
 
-    # Set the file name in the Content-Disposition header
-    response['Content-Disposition'] = f'attachment; filename="train_data.pt"'
+# redirect to download the xaimethod file associated with the challenge_id 
+@api_view(['GET'])
+def xaimethod_detail(request, challenge_id):
+    try:
+        xaimethod = Xaimethod.objects.get(challenge_id=challenge_id)
+        xaimethod_url = xaimethod.xai_method_url
+        
+        # Redirect to the dataset URL
+        return redirect(xaimethod_url)
+    
+    except Dataset.DoesNotExist:
+        return Response({'error': 'XAI Method not found'}, status=status.HTTP_404_NOT_FOUND)
 
-    return response
+# POST request for creating a new challenge 
+@csrf_exempt
+@api_view(['POST'])
+def create_challenge(request):
+    if request.method == 'POST':
+        # fetch the data from the POST request, strings and files 
+        form = ChallengeForm(request.POST, request.FILES)
 
+        if form.is_valid():
+            # parse the important data for new challenge creation 
+            title = form.cleaned_data['title']
+            description = form.cleaned_data['description']
+            xai_method_file = form.cleaned_data['xai_method']
+            dataset_file = form.cleaned_data['dataset']
+            mlmodel_file = form.cleaned_data['mlmodel']
+
+            # generate a unique challenge_id in form of a string 
+            unique_id = str(uuid.uuid4())
+
+            # create new Challenge object 
+            new_challenge = Challenge.objects.create(
+                challenge_id = unique_id,
+                title = title,
+                description = description
+            )
+
+            # Extract the extension 
+            xai_method_ext = os.path.splitext(xai_method_file.name)[1]
+            # Rename the file with a new name and the original extension
+            new_xai_name = f"xaimethod{xai_method_ext}"
+            xai_method_url = upload_file_to_amazon(xai_method_file, settings.AWS_STORAGE_BUCKET_NAME, f"{unique_id}/xai_method/{new_xai_name}")
+            
+            # Extract the extension 
+            dataset_ext = os.path.splitext(dataset_file.name)[1]
+            # Rename the file with a new name and the original extension
+            new_dataset_name = f"dataset{dataset_ext}"
+            dataset_url = upload_file_to_amazon(dataset_file, settings.AWS_STORAGE_BUCKET_NAME, f"{unique_id}/dataset/{new_dataset_name}")
+            
+            # Extract the extension 
+            mlmodel_ext = os.path.splitext(mlmodel_file.name)[1]
+            # Rename the file with a new name and the original extension
+            new_mlmodel_name = f"mlmodel{mlmodel_ext}"
+            mlmodel_url = upload_file_to_amazon(mlmodel_file, settings.AWS_STORAGE_BUCKET_NAME,  f"{unique_id}/mlmodel/{new_mlmodel_name}")
+
+            # now save the urls in railway database 
+            Xaimethod.objects.create(
+                challenge_id = unique_id,
+                xai_method_url = xai_method_url
+            )
+
+            Dataset.objects.create(
+                challenge_id = unique_id,
+                dataset_url = dataset_url
+            )
+            Mlmodel.objects.create(
+                challenge_id = unique_id,
+                mlmodel_url = mlmodel_url
+            )
+
+            # entries in database created. 
+            return Response({"message": "Challenge created successfully"}, status = 201)
+        else: 
+            return Response({"errors":form.errors}, status=400)
+
+
+@csrf_exempt  # Temporarily disable CSRF for testing
+def challenge_form_view(request):
+    if request.method == 'POST':
+        # fetch the data from the POST request, strings and files 
+        form = ChallengeForm(request.POST, request.FILES)
+
+        if form.is_valid():
+            # parse the important data for new challenge creation 
+            title = form.cleaned_data['title']
+            description = form.cleaned_data['description']
+            xai_method_file = form.cleaned_data['xai_method']
+            dataset_file = form.cleaned_data['dataset']
+            mlmodel_file = form.cleaned_data['mlmodel']
+
+            # generate a unique challenge_id in form of a string 
+            unique_id = str(uuid.uuid4())
+
+            # create new Challenge object 
+            new_challenge = Challenge.objects.create(
+                challenge_id = unique_id,
+                title = title,
+                description = description
+            )
+
+            # save the files into Amazon S3 and fetch urls
+
+            # Extract the extension 
+            xai_method_ext = os.path.splitext(xai_method_file.name)[1]
+            # Rename the file with a new name and the original extension
+            new_xai_name = f"xaimethod{xai_method_ext}"
+            xai_method_url = upload_file_to_amazon(xai_method_file, settings.AWS_STORAGE_BUCKET_NAME, f"{unique_id}/xai_method/{new_xai_name}")
+            
+            # Extract the extension 
+            dataset_ext = os.path.splitext(dataset_file.name)[1]
+            # Rename the file with a new name and the original extension
+            new_dataset_name = f"dataset{dataset_ext}"
+            dataset_url = upload_file_to_amazon(dataset_file, settings.AWS_STORAGE_BUCKET_NAME, f"{unique_id}/dataset/{new_dataset_name}")
+            
+            # Extract the extension 
+            mlmodel_ext = os.path.splitext(mlmodel_file.name)[1]
+            # Rename the file with a new name and the original extension
+            new_mlmodel_name = f"mlmodel{mlmodel_ext}"
+            mlmodel_url = upload_file_to_amazon(mlmodel_file, settings.AWS_STORAGE_BUCKET_NAME,  f"{unique_id}/mlmodel/{new_mlmodel_name}")
+
+            # now save the urls in railway database 
+            Xaimethod.objects.create(
+                challenge_id = unique_id,
+                xai_method_url = xai_method_url
+            )
+
+            Dataset.objects.create(
+                challenge_id = unique_id,
+                dataset_url = dataset_url
+            )
+            Mlmodel.objects.create(
+                challenge_id = unique_id,
+                model_url = mlmodel_url
+            )
+
+        return redirect('success')  # Redirect to a success page (create this view separately)
+    else:
+        form = ChallengeForm()
+
+    return render(request, 'api/challenge_form.html', {'form': form})
+
+def success_view(request):
+    return render(request, 'api/success.html')
 
 @api_view(['GET'])
-def ai_detail(request, challenge_id):
-    # try:
-    #     model = Mlmodel.objects.get(challenge_id=challenge_id)
-    # except Mlmodel.DoesNotExist:
-    #     return Response(status=status.HTTP_404)
-
-    # serializer = MlmodelSerializer(model)
-    # return Response(serializer.data)
-
-    file_path = "./ml_model/linear_1d1p_0.18_uncorrelated_LLR_1_0.pt"
-
-    try:
-        with open(file_path, 'rb') as file:
-            data = file.read()
-    except Exception as e:
-        return Response({'error': f'Error reading file: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    # Set the content type to application/octet-stream to indicate a binary file
-    response = HttpResponse(data, content_type='application/octet-stream')
-
-    # Set the file name in the Content-Disposition header
-    response['Content-Disposition'] = f'attachment; filename="linear_1d1p_0.18_uncorrelated_LLR_1_0.pt"'
-
-    return response
-
-
-@api_view(['GET'])
-def xai_template(request, challenge_id):
-    file_path = "./template/xai_template.py"
-
-    try:
-        with open(file_path, 'rb') as file:
-            data = file.read()
-    except Exception as e:
-        return Response({'error': f'Error reading file: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    # Set the content type to application/octet-stream to indicate a binary file
-    response = HttpResponse(data, content_type='application/octet-stream')
-
-    # Set the file name in the Content-Disposition header
-    response['Content-Disposition'] = f'attachment; filename="xai_template.py"'
-
-    return response
+def get_challenge(request, challenge_id):
+    try: 
+        challenge = Challenge.objects.get(challenge_id=challenge_id)
+        serializer = ChallengeSerializer(challenge)
+        serialized_data = serializer.data
+        return Response(serialized_data)
+    
+    except:
+        return Response({"error": "Challenge not found"}, status =404)

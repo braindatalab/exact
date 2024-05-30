@@ -54,7 +54,7 @@ export const SingleCompetition = (props: SingleCompetitionProps) => {
               stored in a database.
             </p>
             <div className="mt-5 flex justify-center">
-              <a href="http://localhost:8000/api/mlmodel/1">
+              <a href="http://localhost:8000/api/mlmodel/f85f311b-9997-429b-9b08-5397140174ed/">
                 <Button
                   variant="contained"
                   color="primary"
@@ -63,7 +63,7 @@ export const SingleCompetition = (props: SingleCompetitionProps) => {
                   Download ML Model
                 </Button>
               </a>
-              <a href="http://localhost:8000/api/dataset/1">
+              <a href="http://localhost:8000/api/dataset/f85f311b-9997-429b-9b08-5397140174ed/">
                 <Button
                   variant="contained"
                   color="primary"
@@ -72,7 +72,7 @@ export const SingleCompetition = (props: SingleCompetitionProps) => {
                   Download Dataset
                 </Button>
               </a>
-              <a href="http://localhost:8000/api/xai_template/1">
+              <a href="http://localhost:8000/api/xaimethod/f85f311b-9997-429b-9b08-5397140174ed/">
                 <Button
                   variant="contained"
                   color="primary"

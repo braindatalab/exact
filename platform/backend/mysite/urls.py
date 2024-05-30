@@ -17,13 +17,19 @@ from django.contrib import admin
 from django.urls import path, include
 from api.views import *
 
+from django.urls import path
+from django.views.generic import TemplateView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/xai/<int:challenge_id>/', xai_detail),
-    path('api/score/<int:challenge_id>/', score_detail),
-    path('api/dataset/<int:challenge_id>/', dataset_detail),
-    path('api/xai_template/<int:challenge_id>/', xai_template),
-    path('api/mlmodel/<int:challenge_id>/', ai_detail),
+    path('api/xai/<str:challenge_id>/', xai_detail),
+    path('api/score/<str:challenge_id>/', score_detail),
+    path('api/dataset/<str:challenge_id>/', dataset_detail),
+    path('api/mlmodel/<str:challenge_id>/', mlmodel_detail),
+    path('api/xaimethod/<str:challenge_id>/', xaimethod_detail),
+    path('api/challenge/create/', create_challenge), 
+    path('challenge/form', challenge_form_view),  # New URL pattern for the form,
+    path('success/', success_view, name='success'),
+    path('challenge/<str:challenge_id>/', get_challenge),
     path('', include('user_api.urls')),
 ]

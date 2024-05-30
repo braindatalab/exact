@@ -20,7 +20,7 @@ export const FileUpload = () => {
       setIsLoading(true);
 
       try {
-        await axios.post("http://localhost:8000/api/xai/1/", formData, {});
+        await axios.post("http://localhost:8000/api/xai/f85f311b-9997-429b-9b08-5397140174ed/", formData, {});
         setUploadStatus(`✅ File uploaded successfully`);
         setIsUploadSuccessful(true);
         setScore(null);
