@@ -70,26 +70,30 @@ const Header = () => {
         />
         <nav className="flex mx-5 space-x-4">
           {!user ? (
-            <>
-              <Button
-                component={Link}
-                href="/login"
-                variant="subtle"
-                radius="xl"
-                size="md"
-              >
-                Sign In
-              </Button>
-              <Button
-                component={Link}
-                href="/register"
-                variant="filled"
-                radius="xl"
-                size="md"
-              >
-                Register
-              </Button>
-            </>
+            user === null ? (
+              <>
+                <Button
+                  component={Link}
+                  href="/login"
+                  variant="subtle"
+                  radius="xl"
+                  size="md"
+                >
+                  Sign In
+                </Button>
+                <Button
+                  component={Link}
+                  href="/register"
+                  variant="filled"
+                  radius="xl"
+                  size="md"
+                >
+                  Register
+                </Button>
+              </>
+            ) : (
+              <></>
+            )
           ) : (
             <>
               <Menu

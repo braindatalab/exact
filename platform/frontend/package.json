@@ -12,6 +12,7 @@
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
     "@mantine/core": "^7.10.0",
+    "@mantine/dropzone": "^7.10.1",
     "@mantine/hooks": "^7.10.0",
     "@mui/icons-material": "^5.15.7",
     "@mui/material": "^5.14.19",

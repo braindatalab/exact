@@ -13,7 +13,7 @@ const client: AxiosInstance = axios.create({
   withCredentials: true,
 });
 
-const UserContext = React.createContext<UserData | null>(null);
+const UserContext = React.createContext<UserData | null | undefined>(null); // undefined -> user not loaded; null -> user loaded, but not signed in
 const UserUpdateContext = React.createContext<Function>(() => {});
 const ClientContext = React.createContext<AxiosInstance>(axios.create());
 
@@ -28,7 +28,7 @@ export const useClient = () => {
 };
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<UserData | null>(null);
+  const [user, setUser] = useState<UserData | null | undefined>(undefined);
 
   const updateUser = (newUser: UserData) => {
     setUser(newUser);

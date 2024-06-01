@@ -12,6 +12,7 @@ import DatasetIcon from "@mui/icons-material/Dataset";
 import CodeIcon from "@mui/icons-material/Code";
 import CommentIcon from "@mui/icons-material/Comment";
 import Link from "next/link";
+import { IconWorldUpload } from "@tabler/icons-react";
 
 type TemporaryDrawerProps = {
   isOpen: boolean;
@@ -24,6 +25,11 @@ const drawerItems = [
   { text: "Datasets", icon: DatasetIcon, href: "/datasets" },
   { text: "Code", icon: CodeIcon, href: "/code" },
   { text: "Discussions", icon: CommentIcon, href: "/discussions" },
+  {
+    text: "New Competition",
+    icon: IconWorldUpload,
+    href: "/competitions/create",
+  },
 ];
 
 const TemporaryDrawer: React.FC<TemporaryDrawerProps> = ({
