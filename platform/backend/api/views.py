@@ -150,9 +150,9 @@ def create_challenge(request):
             )
             Mlmodel.objects.create(
                 challenge_id = unique_id,
-                mlmodel_url = mlmodel_url
+                model_url = mlmodel_url
             )
-
+            
             # entries in database created. 
             return Response({"message": "Challenge created successfully"}, status = 201)
         else: 
