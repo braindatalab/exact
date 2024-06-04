@@ -87,3 +87,14 @@
 		- `target` - `torch.Tensor` of shape (1, N)
 		- `model` - `torch.nn.Module`
 	- **Output** `torch.tensor` of shape (N, 64)
+
+### How to Load a Model
+To load a model, ensure that you have PyTorch installed in your environment.
+
+Import Torch and set up Torch Hub to point to this repository:
+   ```python
+   import torch
+
+   model = torch.hub.load('braindatalab/exact', 'load_cnn', pretrained=False)
+   ```
+Possible options for models are load_cnn, load_llr, load_mlp, load_cnn8by8, load_mlp8by8. 
