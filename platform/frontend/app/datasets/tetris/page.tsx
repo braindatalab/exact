@@ -1,5 +1,4 @@
 import React from "react";
-import Header from "@/app/components/Header";
 
 const page = () => {
   const metadata = {
@@ -11,7 +10,6 @@ const page = () => {
 
   return (
     <>
-      <Header />
       <div className="flex flex-col min-h-screen">
         <main className="flex-grow container mx-auto px-4 py-8">
           <h1 className="text-4xl font-bold mb-4">Tetris Dataset Metadata</h1>
@@ -34,9 +32,6 @@ const page = () => {
           </div>
         </main>
       </div>
-      <footer className="w-full bg-gray-800 text-white text-center p-4">
-        <p>© 2023 A TUB Project - Explainable AI Project.</p>
-      </footer>
     </>
   );
 };

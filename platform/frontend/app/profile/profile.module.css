@@ -1,0 +1,81 @@
+.profileContainer {
+    flex-direction: column;
+    min-height: 83vh;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .header {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+  
+  .editButton {
+    display: block;
+    margin: 1rem auto 0;
+    background-color: #000;
+    color: #fff;
+    border-radius: 20px;
+  }
+  
+  .profileCard {
+    max-width: 1000px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 2rem;
+    margin-top: 2rem;
+    width: 500%;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .avatar {
+    margin-bottom: 1rem;
+  }
+  
+  .username {
+    margin-bottom: 1rem;
+    font-size: 2rem;
+  }
+  
+  .joinedText {
+    margin-top: 1rem;
+    font-size: 1rem;
+  }
+  
+  .tabs {
+    max-width: 1000px;
+    margin-top: 2rem;
+    width: 500%;
+  }
+  
+  .tabs .mantine-Tabs-list {
+    border-bottom: 1px solid #e9ecef;
+  }
+  
+  .tabs .mantine-Tabs-tab {
+    padding: 10px 20px;
+  }
+  
+  .tabs .mantine-Tabs-panel {
+    padding-top: 1rem;
+  }
+  
+  .userInfo {
+    font-size: 1.2rem;
+  }
+  
+  .editIcon {
+    cursor: pointer;
+    margin-left: 0.5rem;
+  }
+  

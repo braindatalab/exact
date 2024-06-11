@@ -1,5 +1,4 @@
 import React from "react";
-import Header from "@/app/components/Header";
 import {
   Card,
   CardActionArea,
@@ -14,7 +13,6 @@ const Datasets = () => {
   const competitionName = "Tetris";
   return (
     <div className="flex flex-col min-h-screen">
-      <Header />
       <main className="flex flex-1 flex-col items-center justify-center p-24 bg-gray-300">
         <h1 className="text-4xl font-bold mb-4">Datasets</h1>
         <p className="my-10">
@@ -47,9 +45,6 @@ const Datasets = () => {
           </Card>
         </Link>
       </main>
-      <footer className="w-full bg-gray-800 text-white text-center p-4">
-        <p>© 2023 A TUB Project - Explainable AI Project.</p>
-      </footer>
     </div>
   );
 };
