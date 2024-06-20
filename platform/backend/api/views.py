@@ -9,11 +9,14 @@ from .serializers import *
 from .worker_utils import trigger_evaluation_script_inside_worker
 from django.http import HttpResponse
 from .forms import ChallengeForm
-from .utils.s3_utils import upload_file_to_amazon
+# from .utils.s3_utils import upload_file_to_amazon
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
-from .models import Challenge, Xaimethod, Dataset, Mlmodel
+from .models import Challenge
 from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404
+from os.path import splitext
+from django.http import FileResponse, Http404
 
 @api_view(['POST'])
 @parser_classes([MultiPartParser])
@@ -59,40 +62,64 @@ def score_detail(request, challenge_id):
 @api_view(['GET'])
 def dataset_detail(request, challenge_id):
     try:
-        dataset = Dataset.objects.get(challenge_id=challenge_id)
-        dataset_url = dataset.dataset_url
+        # Get the challenge by challenge_id
+        challenge = get_object_or_404(Challenge, challenge_id=challenge_id)
         
-        # Redirect to the dataset URL
-        return redirect(dataset_url)
-    
-    except Dataset.DoesNotExist:
-        return Response({'error': 'Dataset not found'}, status=status.HTTP_404_NOT_FOUND)
+        # Get the xaimethod file path
+        dataset_file = challenge.dataset
+        
+        # Serve the xaimethod file
+        if dataset_file:
+            file_extension = os.path.splitext(dataset_file.name)[1]
+            custom_filename = f'dataset_file{file_extension}'
+            response = FileResponse(dataset_file.open('rb'), as_attachment=True, filename=custom_filename)
+            return response
+        else:
+            return Response({'error': 'Dataset file not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 # redirect to download the mlmodel file associated with the challenge_id 
 @api_view(['GET'])
 def mlmodel_detail(request, challenge_id):
     try:
-        mlmodel = Mlmodel.objects.get(challenge_id=challenge_id)
-        mlmodel_url = mlmodel.model_url
+        # Get the challenge by challenge_id
+        challenge = get_object_or_404(Challenge, challenge_id=challenge_id)
         
-        # Redirect to the dataset URL
-        return redirect(mlmodel_url)
-    
-    except Dataset.DoesNotExist:
-        return Response({'error': 'Machine learning Model not found'}, status=status.HTTP_404_NOT_FOUND)
+        # Get the xaimethod file path
+        mlmodel_file = challenge.mlmodel
+        
+        # Serve the xaimethod file
+        if mlmodel_file:
+            file_extension = os.path.splitext(mlmodel_file.name)[1]
+            custom_filename = f'mlmodel_file{file_extension}'
+            response = FileResponse(mlmodel_file.open('rb'), as_attachment=True, filename=custom_filename)
+            return response
+        else:
+            return Response({'error': 'Ml Method file not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 # redirect to download the xaimethod file associated with the challenge_id 
 @api_view(['GET'])
 def xaimethod_detail(request, challenge_id):
     try:
-        xaimethod = Xaimethod.objects.get(challenge_id=challenge_id)
-        xaimethod_url = xaimethod.xai_method_url
+        # Get the challenge by challenge_id
+        challenge = get_object_or_404(Challenge, challenge_id=challenge_id)
         
-        # Redirect to the dataset URL
-        return redirect(xaimethod_url)
-    
-    except Dataset.DoesNotExist:
-        return Response({'error': 'XAI Method not found'}, status=status.HTTP_404_NOT_FOUND)
+        # Get the xaimethod file path
+        xaimethod_file = challenge.xaimethod
+        
+        # Serve the xaimethod file
+        if xaimethod_file:
+            file_extension = os.path.splitext(xaimethod_file.name)[1]
+            custom_filename = f'xai_method_file{file_extension}'
+            response = FileResponse(xaimethod_file.open('rb'), as_attachment=True, filename=custom_filename)
+            return response
+        else:
+            return Response({'error': 'XAI Method file not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 # POST request for creating a new challenge 
 @csrf_exempt
@@ -113,45 +140,16 @@ def create_challenge(request):
             # generate a unique challenge_id in form of a string 
             unique_id = str(uuid.uuid4())
 
-            # create new Challenge object 
+            # Upload files to storage and get URLs
             new_challenge = Challenge.objects.create(
-                challenge_id = unique_id,
-                title = title,
-                description = description
+                challenge_id=unique_id,
+                title=title,
+                description=description,
+                xaimethod=xai_method_file,
+                dataset=dataset_file,
+                mlmodel=mlmodel_file,
             )
-
-            # Extract the extension 
-            xai_method_ext = os.path.splitext(xai_method_file.name)[1]
-            # Rename the file with a new name and the original extension
-            new_xai_name = f"xaimethod{xai_method_ext}"
-            xai_method_url = upload_file_to_amazon(xai_method_file, settings.AWS_STORAGE_BUCKET_NAME, f"{unique_id}/xai_method/{new_xai_name}")
-            
-            # Extract the extension 
-            dataset_ext = os.path.splitext(dataset_file.name)[1]
-            # Rename the file with a new name and the original extension
-            new_dataset_name = f"dataset{dataset_ext}"
-            dataset_url = upload_file_to_amazon(dataset_file, settings.AWS_STORAGE_BUCKET_NAME, f"{unique_id}/dataset/{new_dataset_name}")
-            
-            # Extract the extension 
-            mlmodel_ext = os.path.splitext(mlmodel_file.name)[1]
-            # Rename the file with a new name and the original extension
-            new_mlmodel_name = f"mlmodel{mlmodel_ext}"
-            mlmodel_url = upload_file_to_amazon(mlmodel_file, settings.AWS_STORAGE_BUCKET_NAME,  f"{unique_id}/mlmodel/{new_mlmodel_name}")
-
-            # now save the urls in railway database 
-            Xaimethod.objects.create(
-                challenge_id = unique_id,
-                xai_method_url = xai_method_url
-            )
-
-            Dataset.objects.create(
-                challenge_id = unique_id,
-                dataset_url = dataset_url
-            )
-            Mlmodel.objects.create(
-                challenge_id = unique_id,
-                model_url = mlmodel_url
-            )
+            new_challenge.save()
             
             # entries in database created. 
             return Response({"message": "Challenge created successfully"}, status = 201)
@@ -176,48 +174,17 @@ def challenge_form_view(request):
             # generate a unique challenge_id in form of a string 
             unique_id = str(uuid.uuid4())
 
-            # create new Challenge object 
+            # Upload files to storage and get URLs
             new_challenge = Challenge.objects.create(
-                challenge_id = unique_id,
-                title = title,
-                description = description
+                challenge_id=unique_id,
+                title=title,
+                description=description,
+                xaimethod=xai_method_file,
+                dataset=dataset_file,
+                mlmodel=mlmodel_file,
             )
-
-            # save the files into Amazon S3 and fetch urls
-
-            # Extract the extension 
-            xai_method_ext = os.path.splitext(xai_method_file.name)[1]
-            # Rename the file with a new name and the original extension
-            new_xai_name = f"xaimethod{xai_method_ext}"
-            xai_method_url = upload_file_to_amazon(xai_method_file, settings.AWS_STORAGE_BUCKET_NAME, f"{unique_id}/xai_method/{new_xai_name}")
-            
-            # Extract the extension 
-            dataset_ext = os.path.splitext(dataset_file.name)[1]
-            # Rename the file with a new name and the original extension
-            new_dataset_name = f"dataset{dataset_ext}"
-            dataset_url = upload_file_to_amazon(dataset_file, settings.AWS_STORAGE_BUCKET_NAME, f"{unique_id}/dataset/{new_dataset_name}")
-            
-            # Extract the extension 
-            mlmodel_ext = os.path.splitext(mlmodel_file.name)[1]
-            # Rename the file with a new name and the original extension
-            new_mlmodel_name = f"mlmodel{mlmodel_ext}"
-            mlmodel_url = upload_file_to_amazon(mlmodel_file, settings.AWS_STORAGE_BUCKET_NAME,  f"{unique_id}/mlmodel/{new_mlmodel_name}")
-
-            # now save the urls in railway database 
-            Xaimethod.objects.create(
-                challenge_id = unique_id,
-                xai_method_url = xai_method_url
-            )
-
-            Dataset.objects.create(
-                challenge_id = unique_id,
-                dataset_url = dataset_url
-            )
-            Mlmodel.objects.create(
-                challenge_id = unique_id,
-                model_url = mlmodel_url
-            )
-
+            new_challenge.save()
+    
         return redirect('success')  # Redirect to a success page (create this view separately)
     else:
         form = ChallengeForm()

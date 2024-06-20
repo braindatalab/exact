@@ -67,17 +67,6 @@
 
 ## *API Endpoints*
 
-### *XAI Detail*
-
-- **URL** `/api/xai/<int:challenge_id>/`
-- **Method** POST
-- **Description** 
-  - Endpoint to for XAI script upload
-  - Endpoint triggers creation of a worker (runs and evaluates xai method) container 
-- **Parameters**
-  - `challenge_id`: Number
-
-
 ### *Score Detail*
 
 - **URL** `/api/score/<int:challenge_id>/`
@@ -90,6 +79,16 @@
     - `score`: Number
   - POST:
     - Newly create or update score
+
+### *XAI Detail*
+
+- **URL** `/api/xai/<int:challenge_id>/`
+- **Method** POST
+- **Description** 
+  - Endpoint to for XAI script upload
+  - Endpoint triggers creation of a worker (runs and evaluates xai method) container 
+- **Parameters**
+  - `challenge_id`: Number
 
 ### *Dataset Detail*
 
@@ -121,30 +120,3 @@
 - **Response** 
   - XAI template file in binary format
 
-## *Data Model*
-
-### *XAI Method Model*
-- **Description** Model representing the XAI  method associated with a challenge
-- **Fields**
-  - `challenge_id`: IntegerField (default: 1)
-  - `xai_method`: JSONField (not final type, TODO)
-
-
-
-### Score Model
-- **Description** Model representing the score associated with a challenge 
-- **Fields**
-  - `challenge_id`: IntegerField (default: 1)
-  - `score`: FloatField
-
-### Dataset Model
-- **Description** Model representing the dataset associated with a challenge
-- **Fields**
-  - `challenge_id`: IntegerField (default: 1)
-  - `dataset`: JSONField (not final type)
-
-### ML Model
-- **Description** Model representing the machine learning model associated with a challenge
-- **Fields**
-  - `challenge_id`: IntegerField (default: 1)
-  - `model`: JSONField (not final type)

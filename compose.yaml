@@ -16,6 +16,7 @@ services:
     user: root
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./platform/backend/mysite/media:/app/mysite/media  
     depends_on:
       - worker
       - db
