@@ -1,18 +1,12 @@
+"use client";
 import React from "react";
-import Header from "@/app/components/Header";
-import {
-  Card,
-  CardActionArea,
-  CardContent,
-  CardMedia,
-  Typography,
-} from "@mui/material";
-import Link from "next/link";
-import tetris from "@/public/tetris.png";
-import { Leaderboard } from "../components/Leaderboard";
+import { Grid } from "@mantine/core";
+import { CHALLENGES_MOCK_DATA } from "../components/utils";
+import ChallengeCard from "../components/ChallengeCard";
 
 const Competitions = () => {
-  const competitionName = "Tetris";
+  const challenges = CHALLENGES_MOCK_DATA; // hier später stattdessen mit useeffect tatsächliche challenges JSON fetchen (wenn der endpoint steht)
+
   return (
     <main className="flex flex-1 flex-col items-center justify-center p-24 bg-gray-300">
       <h1 className="text-4xl font-bold mb-4">Competitions</h1>
@@ -20,35 +14,14 @@ const Competitions = () => {
         In this competition section you can explore and participate in
         Explainable AI Benchmarking Challenges.
       </p>
-      <Leaderboard />
-      <p className="my-10">
-        In the following you can see all available competitions. Click on the
-        competition to learn more and participate.
-      </p>
-      <Link href={`/competitions/tetris`} passHref>
-        <Card sx={{ maxWidth: 345, cursor: "pointer" }}>
-          <CardActionArea>
-            <CardMedia
-              component="img"
-              sx={{
-                height: 230,
-              }}
-              height="140"
-              image={tetris.src}
-              alt="Tetris"
-            />
-
-            <CardContent>
-              <Typography gutterBottom variant="h5" component="div">
-                {competitionName} Competition
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Click here to learn more and participate.
-              </Typography>
-            </CardContent>
-          </CardActionArea>
-        </Card>
-      </Link>
+      {/* <Leaderboard /> */}
+      <Grid>
+        {challenges.map((challenge, i) => (
+          <Grid.Col span={{ base: 12, md: 6, lg: 4 }} key={i}>
+            <ChallengeCard challenge={challenge} />
+          </Grid.Col>
+        ))}
+      </Grid>
     </main>
   );
 };

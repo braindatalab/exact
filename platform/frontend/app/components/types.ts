@@ -7,11 +7,13 @@ export interface UserData {
   email: string;
 }
 export interface ChallengeData {
+  id: string;
   title: string;
   description: string;
   thumbnail: string; // URL to image
   participants: number;
   creator: string;
+  creationTimestamp: number;
   deadlineTimestamp: number | null;
   template: string; // URL to xai method template
   model: string; // URL to ML model
