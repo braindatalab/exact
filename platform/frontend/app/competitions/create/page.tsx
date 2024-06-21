@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useUser } from "@/app/components/UserContext";
+import { useClient, useUser } from "@/app/components/UserContext";
 import {
   Button,
   Divider,
@@ -30,12 +30,31 @@ const CreateCompetition = () => {
   const [model, setModel] = useState<File | null>(null);
   const [xaiMethod, setXaiMethod] = useState<File | null>(null);
 
+  const client = useClient();
+
   useEffect(() => {
     // redirect if user is not logged in or does not have permissions to create a competition
     if (user === null) {
-      router.push("/");
+      // router.push("/");
     }
   }, [user, router]);
+
+  const handlePublish = () => {
+    if (!xaiMethod || !model || !dataset) {
+      return;
+    }
+
+    let formData = new FormData();
+    formData.append("title", title);
+    formData.append("description", description);
+    formData.append("dataset", dataset);
+    formData.append("mlmodel", model);
+    formData.append("xai_method", xaiMethod);
+
+    client.post("/api/challenge/create/", formData).then(function (response) {
+      console.log(response.data);
+    });
+  };
 
   return (
     <main className="flex flex-1 flex-col items-center justify-center p-24 bg-gray-300">
@@ -97,6 +116,8 @@ const CreateCompetition = () => {
           <Button
             variant="gradient"
             gradient={{ from: "blue", to: "cyan", deg: 96 }}
+            disabled={!xaiMethod || !dataset || !model}
+            onClick={handlePublish}
           >
             Publish Competition
           </Button>

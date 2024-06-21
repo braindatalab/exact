@@ -18,7 +18,8 @@ export const CHALLENGES_MOCK_DATA: Array<ChallengeData> = [
     title: "Tetris Challenge",
     description:
       "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.",
-    thumbnail: "http://localhost:3000/_next/static/media/tetris.cab32540.png",
+    thumbnail:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Typical_Tetris_Game.svg/1200px-Typical_Tetris_Game.svg.png",
     participants: 13,
     creator: "Rick",
     creationTimestamp: new Date().getTime() - 5 * 24 * 60 * 60 * 1000,
@@ -32,7 +33,8 @@ export const CHALLENGES_MOCK_DATA: Array<ChallengeData> = [
     title: "Tetris Challenge 2",
     description:
       "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.",
-    thumbnail: "http://localhost:3000/_next/static/media/tetris.cab32540.png",
+    thumbnail:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Typical_Tetris_Game.svg/1200px-Typical_Tetris_Game.svg.png",
     participants: 4,
     creator: "Rick",
     creationTimestamp: new Date().getTime() - 10 * 24 * 60 * 60 * 1000,
@@ -46,7 +48,8 @@ export const CHALLENGES_MOCK_DATA: Array<ChallengeData> = [
     title: "Challenge 3",
     description:
       "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.",
-    thumbnail: "http://localhost:3000/_next/static/media/tetris.cab32540.png",
+    thumbnail:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Typical_Tetris_Game.svg/1200px-Typical_Tetris_Game.svg.png",
     participants: 0,
     creator: "Benny",
     creationTimestamp: new Date().getTime() - 19 * 24 * 60 * 60 * 1000,
@@ -60,7 +63,8 @@ export const CHALLENGES_MOCK_DATA: Array<ChallengeData> = [
     title: "New Challenge",
     description:
       "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.",
-    thumbnail: "http://localhost:3000/_next/static/media/tetris.cab32540.png",
+    thumbnail:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Typical_Tetris_Game.svg/1200px-Typical_Tetris_Game.svg.png",
     participants: 49,
     creator: "Rick",
     creationTimestamp: new Date().getTime() - 2 * 24 * 60 * 60 * 1000,
@@ -74,7 +78,8 @@ export const CHALLENGES_MOCK_DATA: Array<ChallengeData> = [
     title: "Another Challenge",
     description:
       "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.",
-    thumbnail: "http://localhost:3000/_next/static/media/tetris.cab32540.png",
+    thumbnail:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Typical_Tetris_Game.svg/1200px-Typical_Tetris_Game.svg.png",
     participants: 1,
     creator: "Rick",
     creationTimestamp: new Date().getTime() - 4 * 24 * 60 * 60 * 1000,
