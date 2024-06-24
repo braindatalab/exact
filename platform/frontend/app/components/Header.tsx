@@ -60,7 +60,7 @@ const Header = () => {
             <Text component={Link} href="/" size="xl">
               evalXAI: Explainable AI Benchmarking Platform{" "}
               <Text inherit span c="gray">
-                powered by
+                hosted by
               </Text>
             </Text>
             <Image component={NextImage} src={logo_ptb} h={20} alt="logo" />
