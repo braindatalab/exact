@@ -17,7 +17,7 @@ const ChallengeCard = ({ challenge }: ChallengeCardProps) => {
     new Date().getTime() - challenge.createdAt.getTime() <
     7 * 24 * 60 * 60 * 1000;
   return (
-    <Card shadow="sm" padding="lg" radius="md" withBorder>
+    <Card shadow="sm" padding="lg" radius="lg" withBorder>
       <Card.Section component={Link} href={`/competitions/${challenge.id}`}>
         <Image src={challenge.thumbnail} h={180} alt={challenge.title} />
       </Card.Section>

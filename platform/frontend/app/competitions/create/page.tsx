@@ -13,11 +13,7 @@ import {
   Title,
   useMantineTheme,
 } from "@mantine/core";
-import {
-  IconFile3d,
-  IconFileCode,
-  IconFileSpreadsheet,
-} from "@tabler/icons-react";
+import { IconDataset, IconModel, IconTemplate } from "@/app/components/utils";
 
 const CreateCompetition = () => {
   const router = useRouter();
@@ -84,7 +80,7 @@ const CreateCompetition = () => {
         />
         <Group justify="center" grow mt="sm">
           <FileInput
-            leftSection={<IconFileSpreadsheet />}
+            leftSection={<IconDataset />}
             label="Dataset"
             placeholder="Click to select a file"
             leftSectionPointerEvents="none"
@@ -93,7 +89,7 @@ const CreateCompetition = () => {
             clearable
           />
           <FileInput
-            leftSection={<IconFile3d />}
+            leftSection={<IconModel />}
             label="ML Model"
             placeholder="Click to select a file"
             leftSectionPointerEvents="none"
@@ -102,7 +98,7 @@ const CreateCompetition = () => {
             clearable
           />
           <FileInput
-            leftSection={<IconFileCode />}
+            leftSection={<IconTemplate />}
             label="XAI Method Template"
             placeholder="Click to select a file"
             leftSectionPointerEvents="none"

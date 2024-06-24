@@ -49,7 +49,7 @@ const Header = () => {
 
   return (
     <header className="bg-gray-800 text-white">
-      <Group justify="space-between" align="center" px="xl" py="xs">
+      <Group justify="space-between" align="center" px={100} py="xs">
         <Group gap="lg">
           <Burger
             opened={isSidebarOpen}
@@ -63,7 +63,13 @@ const Header = () => {
                 hosted by
               </Text>
             </Text>
-            <Image component={NextImage} src={logo_ptb} h={20} alt="logo" />
+            <Image
+              component={NextImage}
+              src={logo_ptb}
+              h={20}
+              w="auto"
+              alt="Logo Physikalisch-Technische Bundesanstalt"
+            />
           </Group>
         </Group>
         <Group gap="lg">
@@ -72,7 +78,7 @@ const Header = () => {
             placeholder="Search..."
             className="px-4 py-2 rounded bg-white text-gray-800"
           />
-          <nav className="flex space-x-4">
+          <Group gap="xs">
             {!user ? (
               user === null ? (
                 <>
@@ -80,8 +86,9 @@ const Header = () => {
                     component={Link}
                     href="/login"
                     variant="subtle"
-                    radius="xl"
+                    radius="sm"
                     size="md"
+                    px="xl"
                   >
                     Sign In
                   </Button>
@@ -89,8 +96,9 @@ const Header = () => {
                     component={Link}
                     href="/register"
                     variant="filled"
-                    radius="xl"
+                    radius="sm"
                     size="md"
+                    px="xl"
                   >
                     Register
                   </Button>
@@ -184,7 +192,7 @@ const Header = () => {
                 </Menu>
               </>
             )}
-          </nav>
+          </Group>
         </Group>
       </Group>
       <TemporaryDrawer

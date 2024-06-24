@@ -1,6 +1,10 @@
 import { IconMail } from "@tabler/icons-react";
 import { AuthenticationOption, ChallengeData, LeaderboardData } from "./types";
-import { Brygada_1918 } from "next/font/google";
+import {
+  IconFile3d,
+  IconFileCode,
+  IconFileSpreadsheet,
+} from "@tabler/icons-react";
 
 export const BASE_URL_API = "http://localhost:8000";
 
@@ -11,6 +15,27 @@ export const NO_FOOTER_PAGES = ["/login", "/register"]; // pages where the foote
 export const AUTHENTICATION_OPTIONS: Array<AuthenticationOption> = [
   { name: "Email", icon: IconMail },
 ];
+
+export const convertChallengeData = (c: any) => {
+  const challenge = {
+    ...c,
+    id: c.challenge_id,
+    deadline: null,
+    createdAt: new Date(c.created_at),
+    thumbnail:
+      c.thumbnail ||
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Typical_Tetris_Game.svg/1200px-Typical_Tetris_Game.svg.png",
+    creator: c.creator || null,
+    participants: c.participants || null,
+  };
+  delete challenge.challenge_id;
+  delete challenge.created_at;
+  return challenge;
+};
+
+export const IconModel = IconFile3d;
+export const IconDataset = IconFileSpreadsheet;
+export const IconTemplate = IconFileCode;
 
 export const CHALLENGES_MOCK_DATA: Array<ChallengeData> = [
   {
