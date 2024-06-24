@@ -9,4 +9,4 @@ class ScoreSerializer(serializers.ModelSerializer):
 class ChallengeSerializer(serializers.ModelSerializer):  
     class Meta:
         model = Challenge
-        fields = ['challenge_id', 'title', 'description', 'created_at', 'xaimethod', 'dataset', 'mlmodel']
+        fields = '__all__'

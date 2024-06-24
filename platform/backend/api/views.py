@@ -204,3 +204,9 @@ def get_challenge(request, challenge_id):
     
     except:
         return Response({"error": "Challenge not found"}, status =404)
+    
+@api_view(['GET'])
+def get_challenges(request):
+    challenges = Challenge.objects.all()
+    serializer = ChallengeSerializer(challenges, many=True)
+    return Response(serializer.data)
