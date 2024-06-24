@@ -1,52 +1,86 @@
 "use client";
-import React from "react";
-import EastIcon from "@mui/icons-material/East";
+import React, { useState } from "react";
 import Link from "next/link";
-import { Button } from "@mantine/core";
+import { Button, Center, Paper, Stepper, Text, Title } from "@mantine/core";
+import {
+  IconAward,
+  IconClick,
+  IconSelect,
+  IconUpload,
+} from "@tabler/icons-react";
 
 const steps = [
-  { step: "Step 1", description: "Click Menu in the top left corner" },
-  { step: "Step 2", description: "Select Competitions" },
-  { step: "Step 3", description: "Choose a Competition" },
-  { step: "Step 4", description: "Upload your File" },
+  {
+    step: "First Step",
+    description: "Open Menu in corner",
+    icon: <IconClick />,
+  },
+  {
+    step: "Second Step",
+    description: "Select Competitions",
+    icon: <IconSelect />,
+  },
+  {
+    step: "Third Step",
+    description: "Choose a Competition",
+    icon: <IconAward />,
+  },
+  { step: "Final Step", description: "Upload your File", icon: <IconUpload /> },
 ];
 
-function NavigationCard({
-  step,
-  description,
-}: {
-  step: string;
-  description: string;
-}) {
-  return (
-    <div className="flex flex-col items-center justify-center bg-white rounded-lg shadow p-6 m-4">
-      <span className="text-2xl font-semibold">{step}</span>
-      <p className="text-center text-xl">{description}</p>
-    </div>
-  );
-}
-
 export default function Home() {
+  const [stepperActive, setStepperActive] = useState(0);
   return (
-    <main className="flex flex-1 flex-col items-center justify-center p-24 bg-gray-300">
-      <h1 className="text-4xl font-bold mb-4"> Welcome</h1>
-      <p className="text-xl mb-8">
-        Explore and participate in Explainable AI Benchmarking Challenges.
-      </p>
-      <div className="flex flex-row ">
-        {steps.map((step, index) => (
-          <div key={index} className="flex flex-row items-center">
-            <NavigationCard step={step.step} description={step.description} />
-            {index !== 3 && <EastIcon />}
-          </div>
-        ))}
-      </div>
-      <div>
-        <Link href="/competitions" passHref>
-          <Button variant="contained" size="large" className="mt-10 bg-black">
+    <main className="flex flex-1 flex-col items-center justify-center bg-gray-300">
+      <div style={{ textAlign: "center", width: "100%" }}>
+        <Text size="50px" fw={700}>
+          Welcome to{" "}
+          <Text
+            fw={900}
+            variant="gradient"
+            inherit
+            span
+            gradient={{ from: "blue", to: "cyan", deg: 90 }}
+          >
+            evalXAI
+          </Text>
+        </Text>
+        <Text size="lg">
+          Explore and participate in Explainable AI Benchmarking Challenges.
+        </Text>
+        <Center my={50}>
+          <Stepper
+            active={stepperActive}
+            onStepClick={setStepperActive}
+            w="80%"
+            size="xl"
+          >
+            {steps.map((s, i) => (
+              <Stepper.Step
+                label={s.step}
+                description={s.description}
+                key={i}
+                icon={s.icon}
+              >
+                {s.step} content: {s.description}
+              </Stepper.Step>
+            ))}
+          </Stepper>
+        </Center>
+        <div>
+          <Button
+            variant="light"
+            component={Link}
+            href="/competitions"
+            size="lg"
+            radius="xl"
+            px="xl"
+            title="See all competitions"
+            gradient={{ from: "blue", to: "cyan", deg: 90 }}
+          >
             Get Started!
           </Button>
-        </Link>
+        </div>
       </div>
     </main>
   );
