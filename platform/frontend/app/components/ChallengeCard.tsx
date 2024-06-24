@@ -14,16 +14,10 @@ const ChallengeCard = ({ challenge }: ChallengeCardProps) => {
   const router = useRouter();
 
   const isNewChallenge =
-    new Date().getTime() - challenge.creationTimestamp <
+    new Date().getTime() - challenge.createdAt.getTime() <
     7 * 24 * 60 * 60 * 1000;
   return (
-    <Card
-      shadow="sm"
-      padding="lg"
-      radius="md"
-      withBorder
-      style={{ width: "500%", maxWidth: "450px", margin: "0 auto" }}
-    >
+    <Card shadow="sm" padding="lg" radius="md" withBorder>
       <Card.Section component={Link} href={`/competitions/${challenge.id}`}>
         <Image src={challenge.thumbnail} h={180} alt={challenge.title} />
       </Card.Section>

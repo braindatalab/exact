@@ -13,10 +13,10 @@ export interface ChallengeData {
   thumbnail: string; // URL to image
   participants: number;
   creator: string;
-  creationTimestamp: number;
-  deadlineTimestamp: number | null;
-  template: string; // URL to xai method template
-  model: string; // URL to ML model
+  createdAt: Date;
+  deadline: Date | null;
+  xaimethod: string; // URL to xai method template
+  mlmodel: string; // URL to ML model
   dataset: string; // URL to dataset
 }
 export interface LeaderboardData {
