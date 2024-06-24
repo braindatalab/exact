@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { NO_FOOTER_PAGES, NO_HEADER_PAGES } from "./utils";
+import { Text } from "@mantine/core";
 
 const Footer = () => {
   const pathname = usePathname();
@@ -11,8 +12,10 @@ const Footer = () => {
   }
 
   return (
-    <footer className="w-full bg-gray-800 text-white text-center p-4">
-      <p>© 2024 A TUB Project - Explainable AI Project.</p>
+    <footer className="w-full bg-gray-800 text-white text-center">
+      <Text size="md" my="xs">
+        © 2024 TUB Project - Programming Lab: Quality Data Science
+      </Text>
     </footer>
   );
 };
