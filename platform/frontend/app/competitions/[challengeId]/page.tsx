@@ -5,10 +5,12 @@ import {
   Button,
   Center,
   Divider,
+  FileInput,
   Grid,
   Group,
   Image,
   Loader,
+  Modal,
   Overlay,
   Paper,
   Text,
@@ -30,6 +32,13 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
   const client = useClient();
   const [challenge, setChallenge] = useState<ChallengeData | null>(null);
   const [error, setError] = useState<AxiosError | null>(null);
+  const [isUploadSubmissionModalOpen, setIsUploadSubmissionModalOpen] =
+    useState(false);
+  const [isLoadingUploadSubmission, setIsLoadingUploadSubmission] =
+    useState(false);
+  const [uploadSubissionFile, setUploadSubmissionFile] = useState<File | null>(
+    null
+  );
 
   useEffect(() => {
     client
@@ -45,6 +54,24 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
   if (error && error.response && error.response.status === 404) {
     notFound();
   }
+
+  const addSubmission = (file: File) => {
+    if (!challenge) {
+      return;
+    }
+    setIsLoadingUploadSubmission(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    client
+      .post(`/api/xai/${challenge.id}/`)
+      .then(() => {
+        setIsLoadingUploadSubmission(false);
+      })
+      .catch((e) => {
+        setIsLoadingUploadSubmission(false);
+        setError(e);
+      });
+  };
 
   return (
     <main className="flex flex-1 flex-col bg-gray-300">
@@ -85,7 +112,7 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
                     position: "absolute",
                     top: "100%",
                     transform: "translateY(-30px)",
-                    zIndex: 1000,
+                    zIndex: 200,
                     textAlign: "center",
                   }}
                 >
@@ -170,7 +197,7 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
                 component="a"
                 href={`http://localhost:8000/api/mlmodel/${challenge.id}`}
               >
-                Download Mashine Model
+                Download ML Model
               </Button>
             </Paper>
             <Paper shadow="md" mt="lg" p="sm">
@@ -188,12 +215,47 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
               </Text>
               <Divider mb="sm" />
               <Group justify="flex-end">
-                <Button>Add Submission</Button>
+                <Button
+                  onClick={() => {
+                    setIsUploadSubmissionModalOpen(true);
+                  }}
+                >
+                  Add Submission
+                </Button>
               </Group>
             </Paper>
           </Grid.Col>
         </Grid>
       )}
+      <Modal
+        opened={isUploadSubmissionModalOpen}
+        onClose={() => {
+          setIsUploadSubmissionModalOpen(false);
+        }}
+        title="Upload Submission"
+        centered
+      >
+        <FileInput
+          accept=".py"
+          label="Upload file with your XAI method"
+          value={uploadSubissionFile}
+          onChange={setUploadSubmissionFile}
+          placeholder="Upload files"
+        />
+        <Group justify="flex-end" mt="sm">
+          <Button
+            disabled={isLoadingUploadSubmission || !uploadSubissionFile}
+            onClick={() => {
+              if (!uploadSubissionFile) {
+                return;
+              }
+              addSubmission(uploadSubissionFile);
+            }}
+          >
+            Upload
+          </Button>
+        </Group>
+      </Modal>
     </main>
   );
 };
