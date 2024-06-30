@@ -2,8 +2,51 @@ import logging
 import io
 import tarfile
 import docker
+import logging
 
+logger = logging.getLogger("utils")
 
+def spawn_worker_container(worker_id: int) -> bool:
+    logging.basicConfig(filename="utils.log", filemode="w", format="%(asctime)s - %(levelname)s - %(message)s")
+    logger = logging.getLogger("utils")
+    file_handler = logging.FileHandler('logs.log')
+    logger.addHandler(file_handler)
+
+    # use logger.warning() to print to log file
+    logger.warning(f'worker_id:{worker_id}')
+    # to copy the log file into your exact folder use: "docker cp exact-backend-1:/app/logs.log logs.log" AFTER you terminated the backend container
+
+    try:
+        # Docker client
+        client = docker.from_env()
+
+        # Building the Docker image requires docker buildkit
+        # Build Docker image (needed?)
+        # dockerfile_path = './worker'
+        # image, build_logs = client.images.build(path=dockerfile_path, tag='exact-worker')
+
+        # Run Docker container
+        container = client.containers.run(
+            "exact-worker",
+            detach=True,
+            name = worker_id,
+        )
+        container.wait()
+
+        # print container logs
+        logs = container.logs()
+        logger.warning(logs.decode('utf-8'))
+
+        container.remove()
+
+        return True
+
+    except Exception as e:
+        logger.error(e)
+        return False
+    
+
+# not used in current implementation
 def trigger_evaluation_script_inside_worker(file_contents: str):
     try:
         # logging.DEBUG("entered trigger function")

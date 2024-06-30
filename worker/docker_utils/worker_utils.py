@@ -4,7 +4,7 @@ from logging import getLogger
 
 logger = getLogger("docker_utils")
 
-
+# not used in current implementation
 def spawn_container(worker_id: int) -> bool:
     try:
         # Path to your Dockerfile and the context directory

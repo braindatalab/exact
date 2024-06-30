@@ -6,7 +6,7 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework import status
 from .models import *
 from .serializers import *
-from .worker_utils import trigger_evaluation_script_inside_worker
+from .worker_utils import spawn_worker_container
 from django.http import HttpResponse
 from .forms import ChallengeForm
 # from .utils.s3_utils import upload_file_to_amazon
@@ -30,9 +30,9 @@ def xai_detail(request, challenge_id):
     file_contents = input_file.read().decode('utf-8')
 
     # initialise a worker on the server that will evaluate the uploaded solution and return a score  
-    message = trigger_evaluation_script_inside_worker(file_contents)
+    spawn_worker_container(uuid.uuid4().hex)
 
-    return Response({'message': message}, status=status.HTTP_200_OK)
+    return Response(status=status.HTTP_200_OK)
 
 
 @api_view(['GET', 'POST'])
