@@ -210,3 +210,19 @@ def get_challenges(request):
     challenges = Challenge.objects.all()
     serializer = ChallengeSerializer(challenges, many=True)
     return Response(serializer.data)
+
+# upload a new score
+@api_view(['POST'])
+def add_score(request):
+    serializer = ScoreSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# fetch all scores 
+@api_view(['GET'])
+def get_scores(request): 
+    scores = Score.objects.all()
+    serializer = ScoreSerializer(scores, many=True)
+    return Response(serializer.data)

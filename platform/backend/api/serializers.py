@@ -4,7 +4,7 @@ from .models import *
 class ScoreSerializer(serializers.ModelSerializer):
     class Meta:
         model = Score
-        fields = ["challenge_id", "score"]
+        fields = ['user_id', 'challenge_id', 'score', 'created_at']
 
 class ChallengeSerializer(serializers.ModelSerializer):  
     class Meta:

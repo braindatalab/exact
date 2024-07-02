@@ -120,3 +120,11 @@
 - **Response** 
   - XAI template file in binary format
 
+### *Score management*
+- **URL** `/api/newscore/`
+- **Method** POST
+- **Description** Endpoint to post a new score of a xai method associated to a challenge. 
+- **Parameters**
+- `user_id`: String 
+- `challenge_id`: Number (ID of the challenge)
+- `score`: Float (score value)

@@ -8,11 +8,15 @@ def challenge_directory_path(instance, filename):
 
 # Score Model
 class Score(models.Model):
+    user_id = models.CharField(max_length=150) 
     challenge_id = models.CharField(max_length=100, unique=True)
     score = models.FloatField()
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.pk} - {self.score}"
+        return f"User {self.user_id} - Challenge {self.challenge.challenge_id} - {self.score}"
+
+
 
 # Challenge model 
 class Challenge(models.Model):
