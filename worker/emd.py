@@ -9,6 +9,7 @@ from upload import XAI_Method
 import pickle as pkl
 import numpy as np
 import requests
+import os
 
 from ot.lp import emd
 
@@ -18,7 +19,7 @@ from ot.lp import emd
 # combined_mask[1:4, 1:3] = normal_t
 # combined_mask[4:7, 5:7] = normal_l
 # combined_mask = combined_mask.reshape((8,8))
-challenge_Id = 1
+challenge_id = os.getenv('challenge_id')
 
 # euclidean distance cost matrix
 
@@ -89,8 +90,9 @@ def final_score():
 
 
 score = final_score()
-post_data = {"score": float(score)}
+print(f"score: {score}")
+post_data = {"user_id": "testid123", "challenge_id": challenge_id, "score": float(score)}
 
-post_url = f"http://backend:8000/api/score/{challenge_Id}/"
+post_url = f"http://backend:8000/api/addscore/"
 response = requests.post(post_url, json=post_data)
 print(post_data)

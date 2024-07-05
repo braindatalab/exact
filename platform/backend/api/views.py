@@ -30,9 +30,9 @@ def xai_detail(request, challenge_id):
     file_contents = input_file.read().decode('utf-8')
 
     # initialise a worker on the server that will evaluate the uploaded solution and return a score  
-    spawn_worker_container(uuid.uuid4().hex)
+    message = spawn_worker_container(uuid.uuid4().hex, challenge_id, file_contents)
 
-    return Response(status=status.HTTP_200_OK)
+    return Response({'message': message}, status=status.HTTP_200_OK)
 
 
 @api_view(['GET', 'POST'])
