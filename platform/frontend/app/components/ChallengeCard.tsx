@@ -27,7 +27,7 @@ const ChallengeCard = ({ challenge }: ChallengeCardProps) => {
         {isNewChallenge && <Badge color="pink">New!</Badge>}
       </Group>
 
-      <Text size="sm" c="dimmed">
+      <Text size="sm" c="dimmed" lineClamp={3}>
         {challenge.description}
       </Text>
 
