@@ -14,6 +14,8 @@ import {
   useMantineTheme,
 } from "@mantine/core";
 import { IconDataset, IconModel, IconTemplate } from "@/app/components/utils";
+import { IconArrowLeft } from "@tabler/icons-react";
+import Link from "next/link";
 
 const CreateCompetition = () => {
   const router = useRouter();
@@ -53,7 +55,22 @@ const CreateCompetition = () => {
   };
 
   return (
-    <main className="flex flex-1 flex-col items-center justify-center p-24 bg-gray-300">
+    <main
+      className="flex flex-1 flex-col items-center justify-center bg-gray-300"
+      style={{ padding: "0 100px", position: "relative" }}
+    >
+      <Button
+        pos="absolute"
+        top={10}
+        left={100}
+        leftSection={<IconArrowLeft size={14} />}
+        variant="default"
+        radius="xl"
+        href="/competitions"
+        component={Link}
+      >
+        Back to Competitions Overview
+      </Button>
       <Paper p="xl" w="100%" shadow="md">
         <Title order={3}>Create a New Competition</Title>
         <Divider my="md" />

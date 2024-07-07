@@ -4,9 +4,12 @@ import tarfile
 import docker
 import logging
 
+# Define the maximum number of running containers
+MAX_RUNNING_CONTAINERS = 5
+
 logger = logging.getLogger("utils")
 
-def spawn_worker_container(worker_id: int) -> bool:
+def spawn_worker_container(worker_id: str, challenge_id: str, file_contents: str):
     logging.basicConfig(filename="utils.log", filemode="w", format="%(asctime)s - %(levelname)s - %(message)s")
     logger = logging.getLogger("utils")
     file_handler = logging.FileHandler('logs.log')
@@ -20,6 +23,13 @@ def spawn_worker_container(worker_id: int) -> bool:
         # Docker client
         client = docker.from_env()
 
+        # Check if there is capacity for an additional worker
+        running_containers = client.containers.list(filters={"ancestor": "exact-worker"})
+        logger.warning(f'CURRENTLY RUNNING CONTAINERS: {len(running_containers)}')
+
+        if len(running_containers) >= MAX_RUNNING_CONTAINERS:
+            return "worker limit reached"
+
         # Building the Docker image requires docker buildkit
         # Build Docker image (needed?)
         # dockerfile_path = './worker'
@@ -30,8 +40,10 @@ def spawn_worker_container(worker_id: int) -> bool:
             "exact-worker",
             detach=True,
             name = worker_id,
+            environment={'worker_id':worker_id, 'challenge_id':challenge_id, 'file_contents':file_contents}
         )
-        container.wait()
+        
+        container.wait()        
 
         # print container logs
         logs = container.logs()
@@ -39,11 +51,11 @@ def spawn_worker_container(worker_id: int) -> bool:
 
         container.remove()
 
-        return True
+        return "success"
 
     except Exception as e:
         logger.error(e)
-        return False
+        return "error"
     
 
 # not used in current implementation
