@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.postgres.fields import JSONField
 import uuid 
+from django.utils import timezone
 
 def challenge_directory_path(instance, filename):
     # file will be uploaded to MEDIA_ROOT/CHALLENGE_ID/filename
@@ -24,9 +25,9 @@ class Challenge(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
-    mlmodel = models.FileField(upload_to=challenge_directory_path )
-    dataset = models.FileField(upload_to=challenge_directory_path ) # 
-    xaimethod = models.FileField(upload_to=challenge_directory_path )
+    mlmodel = models.FileField(upload_to=challenge_directory_path, default='default_mlmodel.txt' )
+    dataset = models.FileField(upload_to=challenge_directory_path, default='default_dataset.txt') # 
+    xaimethod = models.FileField(upload_to=challenge_directory_path, default='default_xaimethod.txt' )
 
     def save(self, *args, **kwargs):
         # Generate a unique challenge_id if it's not set
