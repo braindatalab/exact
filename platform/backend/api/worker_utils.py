@@ -37,9 +37,10 @@ def spawn_worker_container(worker_id: str, challenge_id: str, file_contents: str
 
         # Run Docker container
         container = client.containers.run(
-            "exact-worker",
+            image = "exact-worker",
             detach=True,
             name = worker_id,
+            network = 'exact_worker_network',
             environment={'worker_id':worker_id, 'challenge_id':challenge_id, 'file_contents':file_contents}
         )
         

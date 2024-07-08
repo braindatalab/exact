@@ -9,6 +9,7 @@
 # https://github.com/docker/awesome-compose
 services:
   backend:
+    image: exact-backend
     build:
       context: ./platform/backend
     ports:
@@ -18,18 +19,26 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./platform/backend/mysite/media:/app/mysite/media  
     depends_on:
-      - worker
       - db
+    networks:
+      - worker_network
 
   frontend:
+    image: exact-frontend
     build:
       context: ./platform/frontend
     ports:
       - 3000:3000
 
   worker:
+    image: exact-worker
     build:
       context: ./worker
+    depends_on:
+      - backend
+    networks:
+      - worker_network
+
   # Additional configuration for the worker service
 
   # The commented out section below is an example of how to define a PostgreSQL
@@ -62,3 +71,7 @@ volumes:
 secrets:
   db-password:
     file: db/password.txt
+
+networks:
+  worker_network:
+    driver: bridge
