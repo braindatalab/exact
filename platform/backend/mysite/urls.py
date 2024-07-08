@@ -32,5 +32,8 @@ urlpatterns = [
     path('success/', success_view, name='success'),
     path('api/challenge/<str:challenge_id>/', get_challenge),
     path('api/challenges/', get_challenges), 
+    path('api/newscore/', add_score),  
+    path('api/scores/', get_scores),
     path('', include('user_api.urls')),
 ]
+
