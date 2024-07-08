@@ -13,6 +13,7 @@ import {
   Modal,
   Overlay,
   Paper,
+  Table,
   Text,
   Title,
 } from "@mantine/core";
@@ -24,6 +25,7 @@ import {
   IconModel,
   IconTemplate,
   convertChallengeData,
+  LEADERBOARD_MOCK_DATA,
 } from "@/app/components/utils";
 import { AxiosError } from "axios";
 import { IconFileSpreadsheet } from "@tabler/icons-react";
@@ -205,7 +207,24 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
                 Leaderboard
               </Text>
               <Divider mb="sm" />
-              todo
+              <Table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0', border: '1px solid #e0e0e0', borderRadius: '8px', overflow: 'hidden' }}>
+                <thead style={{ backgroundColor: '#f5f5f5' }}>
+                  <tr>
+                    <th style={{ textAlign: "left", padding: '8px', borderBottom: "1px solid #e0e0e0", borderRight: "1px solid #e0e0e0" }}>Rank</th>
+                    <th style={{ textAlign: "left", padding: '8px', borderBottom: "1px solid #e0e0e0", borderRight: "1px solid #e0e0e0" }}>User</th>
+                    <th style={{ textAlign: "left", padding: '8px', borderBottom: "1px solid #e0e0e0" }}>Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {LEADERBOARD_MOCK_DATA.ranking.map((entry, index) => (
+                    <tr key={index} style={{ borderTop: '1px solid #e0e0e0' }}>
+                      <td style={{ padding: '8px', borderRight: "1px solid #e0e0e0" }}>{index + 1}</td>
+                      <td style={{ padding: '8px', borderRight: "1px solid #e0e0e0" }}>{entry.user}</td>
+                      <td style={{ padding: '8px' }}>{entry.score}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
             </Paper>
           </Grid.Col>
           <Grid.Col span={{ base: 12, lg: 8 }}>
