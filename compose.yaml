@@ -20,8 +20,6 @@ services:
       - ./platform/backend/mysite/media:/app/mysite/media  
     depends_on:
       - db
-    networks:
-      - worker_network
 
   frontend:
     image: exact-frontend
@@ -36,8 +34,6 @@ services:
       context: ./worker
     depends_on:
       - backend
-    networks:
-      - worker_network
 
   # Additional configuration for the worker service
 
@@ -71,7 +67,3 @@ volumes:
 secrets:
   db-password:
     file: db/password.txt
-
-networks:
-  worker_network:
-    driver: bridge

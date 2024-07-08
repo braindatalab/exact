@@ -94,7 +94,9 @@ score = final_score()
 post_data = {"user_id": "testid123", "challenge_id": challenge_id, "score": float(score)}
 print(post_data)
 
-post_url = "http://backend:8000/api/newscore/"
-response = requests.post(post_url, json=post_data)
-print("Status Code:", response.status_code)
-print("Response JSON:", response.json())
+# not working without a network:
+
+# post_url = "http://backend:8000/api/newscore/"
+# response = requests.post(post_url, json=post_data)
+# print("Status Code:", response.status_code)
+# print("Response JSON:", response.json())

@@ -28,7 +28,7 @@ def spawn_worker_container(worker_id: str, challenge_id: str, file_contents: str
         logger.warning(f'CURRENTLY RUNNING CONTAINERS: {len(running_containers)}')
 
         if len(running_containers) >= MAX_RUNNING_CONTAINERS:
-            return "worker limit reached"
+            return "Worker limit reached, try again later."
 
         # Building the Docker image requires docker buildkit
         # Build Docker image (needed?)
@@ -40,7 +40,6 @@ def spawn_worker_container(worker_id: str, challenge_id: str, file_contents: str
             image = "exact-worker",
             detach=True,
             name = worker_id,
-            network = 'exact_worker_network',
             environment={'worker_id':worker_id, 'challenge_id':challenge_id, 'file_contents':file_contents}
         )
         
@@ -56,7 +55,7 @@ def spawn_worker_container(worker_id: str, challenge_id: str, file_contents: str
 
     except Exception as e:
         logger.error(e)
-        return "error"
+        return "error: {e}"
     
 
 # not used in current implementation
