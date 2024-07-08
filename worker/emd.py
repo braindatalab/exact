@@ -90,6 +90,7 @@ def final_score():
 
 
 score = final_score()
+print(f"FINAL_SCORE:{score}")
 
 post_data = {"user_id": "testid123", "challenge_id": challenge_id, "score": float(score)}
 print(post_data)
