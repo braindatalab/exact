@@ -28,7 +28,6 @@ import {
   LEADERBOARD_MOCK_DATA,
 } from "@/app/components/utils";
 import { AxiosError } from "axios";
-import { IconFileSpreadsheet } from "@tabler/icons-react";
 
 const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
   const client = useClient();
@@ -41,6 +40,8 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
   const [uploadSubissionFile, setUploadSubmissionFile] = useState<File | null>(
     null
   );
+
+  // get all scores here with useSWR and filter for correct challenge
 
   useEffect(() => {
     client
@@ -65,9 +66,11 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
     const formData = new FormData();
     formData.append("file", file);
     client
-      .post(`/api/xai/${challenge.id}/`)
+      .post(`/api/xai/${challenge.id}/`, formData)
       .then(() => {
         setIsLoadingUploadSubmission(false);
+        setIsUploadSubmissionModalOpen(false);
+        // maybe show success message here or something
       })
       .catch((e) => {
         setIsLoadingUploadSubmission(false);
@@ -130,6 +133,21 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
                 </div>
               </AspectRatio>
               <Text m="md">{challenge.description}</Text>
+            </Paper>
+            <Paper shadow="md" p="sm" mt="lg">
+              <Text size="xl" fw="600" ta="center">
+                Your Submissions
+              </Text>
+              <Divider mb="sm" />
+              <Group justify="flex-end">
+                <Button
+                  onClick={() => {
+                    setIsUploadSubmissionModalOpen(true);
+                  }}
+                >
+                  Add Submission
+                </Button>
+              </Group>
             </Paper>
           </Grid.Col>
           <Grid.Col span={{ base: 12, lg: 4 }}>
@@ -207,41 +225,73 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
                 Leaderboard
               </Text>
               <Divider mb="sm" />
-              <Table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0', border: '1px solid #e0e0e0', borderRadius: '8px', overflow: 'hidden' }}>
-                <thead style={{ backgroundColor: '#f5f5f5' }}>
+              <Table
+                style={{
+                  width: "100%",
+                  borderCollapse: "separate",
+                  borderSpacing: "0",
+                  border: "1px solid #e0e0e0",
+                  borderRadius: "8px",
+                  overflow: "hidden",
+                }}
+              >
+                <thead style={{ backgroundColor: "#f5f5f5" }}>
                   <tr>
-                    <th style={{ textAlign: "left", padding: '8px', borderBottom: "1px solid #e0e0e0", borderRight: "1px solid #e0e0e0" }}>Rank</th>
-                    <th style={{ textAlign: "left", padding: '8px', borderBottom: "1px solid #e0e0e0", borderRight: "1px solid #e0e0e0" }}>User</th>
-                    <th style={{ textAlign: "left", padding: '8px', borderBottom: "1px solid #e0e0e0" }}>Score</th>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "8px",
+                        borderBottom: "1px solid #e0e0e0",
+                        borderRight: "1px solid #e0e0e0",
+                      }}
+                    >
+                      Rank
+                    </th>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "8px",
+                        borderBottom: "1px solid #e0e0e0",
+                        borderRight: "1px solid #e0e0e0",
+                      }}
+                    >
+                      User
+                    </th>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "8px",
+                        borderBottom: "1px solid #e0e0e0",
+                      }}
+                    >
+                      Score
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {LEADERBOARD_MOCK_DATA.ranking.map((entry, index) => (
-                    <tr key={index} style={{ borderTop: '1px solid #e0e0e0' }}>
-                      <td style={{ padding: '8px', borderRight: "1px solid #e0e0e0" }}>{index + 1}</td>
-                      <td style={{ padding: '8px', borderRight: "1px solid #e0e0e0" }}>{entry.user}</td>
-                      <td style={{ padding: '8px' }}>{entry.score}</td>
+                    <tr key={index} style={{ borderTop: "1px solid #e0e0e0" }}>
+                      <td
+                        style={{
+                          padding: "8px",
+                          borderRight: "1px solid #e0e0e0",
+                        }}
+                      >
+                        {index + 1}
+                      </td>
+                      <td
+                        style={{
+                          padding: "8px",
+                          borderRight: "1px solid #e0e0e0",
+                        }}
+                      >
+                        {entry.user}
+                      </td>
+                      <td style={{ padding: "8px" }}>{entry.score}</td>
                     </tr>
                   ))}
                 </tbody>
               </Table>
-            </Paper>
-          </Grid.Col>
-          <Grid.Col span={{ base: 12, lg: 8 }}>
-            <Paper shadow="md" p="sm">
-              <Text size="xl" fw="600" ta="center">
-                Your Submissions
-              </Text>
-              <Divider mb="sm" />
-              <Group justify="flex-end">
-                <Button
-                  onClick={() => {
-                    setIsUploadSubmissionModalOpen(true);
-                  }}
-                >
-                  Add Submission
-                </Button>
-              </Group>
             </Paper>
           </Grid.Col>
         </Grid>

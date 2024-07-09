@@ -24,6 +24,7 @@ import {
   IconUserPentagon,
 } from "@tabler/icons-react";
 import NextImage from "next/image";
+import { useMediaQuery } from "@mantine/hooks";
 
 const Header = () => {
   const pathname = usePathname();
@@ -32,6 +33,8 @@ const Header = () => {
   const client = useClient();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const smallScreen = useMediaQuery("(max-width: 90em)");
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -57,19 +60,27 @@ const Header = () => {
             color="white"
           />
           <Group gap={5}>
-            <Text component={Link} href="/" size="xl">
-              evalXAI: Explainable AI Benchmarking Platform{" "}
-              <Text inherit span c="gray">
-                hosted by
+            {smallScreen ? (
+              <Text component={Link} href="/" size="xl">
+                evalXAI
               </Text>
-            </Text>
-            <Image
-              component={NextImage}
-              src={logo_ptb}
-              h={20}
-              w="auto"
-              alt="Logo Physikalisch-Technische Bundesanstalt"
-            />
+            ) : (
+              <>
+                <Text component={Link} href="/" size="xl">
+                  evalXAI: Explainable AI Benchmarking Platform{" "}
+                  <Text inherit span c="gray">
+                    hosted by
+                  </Text>
+                </Text>
+                <Image
+                  component={NextImage}
+                  src={logo_ptb}
+                  h={20}
+                  w="auto"
+                  alt="Logo Physikalisch-Technische Bundesanstalt"
+                />
+              </>
+            )}
           </Group>
         </Group>
         <Group gap="lg">

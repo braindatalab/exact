@@ -51,6 +51,8 @@ const CreateCompetition = () => {
 
     client.post("/api/challenge/create/", formData).then(function (response) {
       console.log(response.data);
+      // Challenge created successfully
+      router.push("/competitions");
     });
   };
 

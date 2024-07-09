@@ -8,3 +8,6 @@ class ChallengeForm(forms.Form):
     xai_method = forms.FileField()
     dataset = forms.FileField()
     mlmodel = forms.FileField()
+
+class ScoreForm(forms.Form):
+    file = forms.FileField()

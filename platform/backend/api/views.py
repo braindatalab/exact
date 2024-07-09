@@ -9,6 +9,7 @@ from .serializers import *
 from .worker_utils import spawn_worker_container
 from django.http import HttpResponse
 from .forms import ChallengeForm
+from .forms import ScoreForm
 # from .utils.s3_utils import upload_file_to_amazon
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
@@ -21,8 +22,11 @@ from django.http import FileResponse, Http404
 @api_view(['POST'])
 @parser_classes([MultiPartParser])
 def xai_detail(request, challenge_id):
-
-    input_file = request.FILES.get('file')
+    # Get the XAI method file from the request
+    form = ScoreForm(request.POST, request.FILES)
+    input_file = None
+    if form.is_valid():
+        input_file = form.cleaned_data['file']
 
     if input_file is None:
         return Response({'error': f'error getting the input file'}, status=status.HTTP_400_BAD_REQUEST)
