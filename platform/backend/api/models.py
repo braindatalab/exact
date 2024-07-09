@@ -10,7 +10,7 @@ def challenge_directory_path(instance, filename):
 # Score Model
 class Score(models.Model):
     user_id = models.CharField(max_length=150) 
-    challenge_id = models.CharField(max_length=100, unique=True)
+    challenge_id = models.CharField(max_length=100)
     score = models.FloatField()
     created_at = models.DateTimeField(auto_now_add=True)
 

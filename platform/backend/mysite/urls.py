@@ -22,7 +22,7 @@ from django.views.generic import TemplateView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/xai/<str:challenge_id>/', xai_detail),
+    path('api/xai/<str:challenge_id>/', xai_detail), # For submitting XAI-methods and getting the computed score
     path('api/score/<str:challenge_id>/', score_detail),
     path('api/dataset/<str:challenge_id>/', dataset_detail),
     path('api/mlmodel/<str:challenge_id>/', mlmodel_detail),
@@ -32,7 +32,7 @@ urlpatterns = [
     path('success/', success_view, name='success'),
     path('api/challenge/<str:challenge_id>/', get_challenge),
     path('api/challenges/', get_challenges), 
-    path('api/newscore/', add_score),  
+    # path('api/newscore/', add_score),  
     path('api/scores/', get_scores),
     path('', include('user_api.urls')),
 ]

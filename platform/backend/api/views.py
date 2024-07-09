@@ -29,10 +29,20 @@ def xai_detail(request, challenge_id):
 
     file_contents = input_file.read().decode('utf-8')
 
-    # initialise a worker on the server that will evaluate the uploaded solution and return a score  
-    message = spawn_worker_container(uuid.uuid4().hex, challenge_id, file_contents)
+    # Initialise a worker on the server that will evaluate the uploaded solution and return a score  
+    (message, score) = spawn_worker_container(uuid.uuid4().hex, challenge_id, file_contents)
 
-    return Response({'message': message}, status=status.HTTP_200_OK)
+    # Return message in response when something went wrong while computing the score
+    if (score == None):
+        return Response({'message': message, score: None}, status=status.HTTP_200_OK)
+
+    # Store score in the database
+    serializer = ScoreSerializer(data={'score': score, 'challenge_id': challenge_id, 'user_id': "testuser123"}) # TODO: replace 'user_id' field with real user_id
+    if serializer.is_valid():
+        serializer.save()
+        return Response({'message': message, 'score': serializer.data}, status=status.HTTP_201_CREATED)
+    
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET', 'POST'])
@@ -211,14 +221,14 @@ def get_challenges(request):
     serializer = ChallengeSerializer(challenges, many=True)
     return Response(serializer.data)
 
-# upload a new score
-@api_view(['POST'])
-def add_score(request):
-    serializer = ScoreSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+# upload a new score (we don't need this endpoint anymore, because xai_detail function now automatically adds the score to the database)
+# @api_view(['POST'])
+# def add_score(request):
+#     serializer = ScoreSerializer(data=request.data)
+#     if serializer.is_valid():
+#         serializer.save()
+#         return Response(serializer.data, status=status.HTTP_201_CREATED)
+#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # fetch all scores 
 @api_view(['GET'])

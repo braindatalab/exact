@@ -19,7 +19,10 @@ def spawn_worker_container(worker_id: str, challenge_id: str, file_contents: str
     logger.warning(f'worker_id:{worker_id}')
     # to copy the log file into your exact folder use: "docker cp exact-backend-1:/app/logs.log logs.log" AFTER you terminated the backend container
 
+    score = None # Initilize score
+
     try:
+        
         # Docker client
         client = docker.from_env()
 
@@ -28,7 +31,7 @@ def spawn_worker_container(worker_id: str, challenge_id: str, file_contents: str
         logger.warning(f'CURRENTLY RUNNING CONTAINERS: {len(running_containers)}')
 
         if len(running_containers) >= MAX_RUNNING_CONTAINERS:
-            return "Worker limit reached, try again later."
+            return ("Worker limit reached, try again later.", score)
 
         # Building the Docker image requires docker buildkit
         # Build Docker image (needed?)
@@ -45,17 +48,22 @@ def spawn_worker_container(worker_id: str, challenge_id: str, file_contents: str
         
         container.wait()        
 
-        # print container logs
-        logs = container.logs()
-        logger.warning(logs.decode('utf-8'))
+        # Print container logs
+        logs = container.logs().decode('utf-8')
+        logger.warning(logs)
+
+        # Get final score from the container's logs
+        score_lines = [ line for line in logs.splitlines() if 'FINAL_SCORE:' in line ]
+        if (len(score_lines) > 0):
+            score = float(score_lines[0].split(':')[1])
 
         container.remove()
 
-        return "success"
+        return ("success", score)
 
     except Exception as e:
         logger.error(e)
-        return "error: {e}"
+        return ("error: {e}", score)
     
 
 # not used in current implementation
