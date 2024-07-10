@@ -7,6 +7,7 @@ import {
   Divider,
   FileInput,
   Group,
+  Loader,
   Paper,
   TextInput,
   Textarea,
@@ -27,6 +28,7 @@ const CreateCompetition = () => {
   const [dataset, setDataset] = useState<File | null>(null);
   const [model, setModel] = useState<File | null>(null);
   const [xaiMethod, setXaiMethod] = useState<File | null>(null);
+  const [isLoadingPublish, setIsLoadingPublish] = useState<boolean>(false);
 
   const client = useClient();
 
@@ -42,6 +44,8 @@ const CreateCompetition = () => {
       return;
     }
 
+    setIsLoadingPublish(true);
+
     let formData = new FormData();
     formData.append("title", title);
     formData.append("description", description);
@@ -49,11 +53,18 @@ const CreateCompetition = () => {
     formData.append("mlmodel", model);
     formData.append("xai_method", xaiMethod);
 
-    client.post("/api/challenge/create/", formData).then(function (response) {
-      console.log(response.data);
-      // Challenge created successfully
-      router.push("/competitions");
-    });
+    client
+      .post("/api/challenge/create/", formData)
+      .then(function (response) {
+        console.log(response.data);
+        // Challenge created successfully
+        router.push("/competitions");
+        setIsLoadingPublish(false);
+      })
+      .catch((e) => {
+        setIsLoadingPublish(false);
+        console.log(e);
+      });
   };
 
   return (
@@ -131,11 +142,12 @@ const CreateCompetition = () => {
           <Button
             variant="gradient"
             gradient={{ from: "blue", to: "cyan", deg: 96 }}
-            disabled={!xaiMethod || !dataset || !model}
+            disabled={!xaiMethod || !dataset || !model || isLoadingPublish}
             onClick={handlePublish}
           >
             Publish Competition
           </Button>
+          {isLoadingPublish && <Loader type="dots" />}
         </Group>
       </Paper>
     </main>

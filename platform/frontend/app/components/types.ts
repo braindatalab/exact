@@ -20,9 +20,11 @@ export interface ChallengeData {
   dataset: string; // URL to dataset
 }
 export interface LeaderboardData {
-  ranking: Array<EvaluationData>; // low index = high rating
+  ranking: Array<Score>; // low index = high rating
 }
-export interface EvaluationData {
-  user: string;
+export interface Score {
   score: number;
+  username: string;
+  challengeId: string;
+  createdAt: Date;
 }

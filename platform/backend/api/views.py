@@ -41,7 +41,7 @@ def xai_detail(request, challenge_id):
         return Response({'message': message, score: None}, status=status.HTTP_200_OK)
 
     # Store score in the database
-    serializer = ScoreSerializer(data={'score': score, 'challenge_id': challenge_id, 'user_id': "testuser123"}) # TODO: replace 'user_id' field with real user_id
+    serializer = ScoreSerializer(data={'score': score, 'challenge_id': challenge_id, 'username': "testuser123"}) # TODO: replace 'username' field with real username
     if serializer.is_valid():
         serializer.save()
         return Response({'message': message, 'score': serializer.data}, status=status.HTTP_201_CREATED)

@@ -115,12 +115,24 @@ export const CHALLENGES_MOCK_DATA: Array<ChallengeData> = [
   },
 ];
 
+const challengeId = "insert challenge id for leaderboard mockdata here";
 export const LEADERBOARD_MOCK_DATA: LeaderboardData = {
   ranking: [
-    { user: "Mochtaba", score: 20 },
-    { user: "Konrad", score: 4 },
-    { user: "Vincent", score: 19 },
-    { user: "Nick", score: 19 },
-    { user: "Matthew", score: 39 },
+    { username: "Mochtaba", score: 20, challengeId, createdAt: new Date() },
+    { username: "Konrad", score: 4, challengeId, createdAt: new Date() },
+    { username: "Vincent", score: 19, challengeId, createdAt: new Date() },
+    { username: "Nick", score: 19, challengeId, createdAt: new Date() },
+    { username: "Matthew", score: 39, challengeId, createdAt: new Date() },
   ],
 };
+
+export const convertScore = (score: any) => {
+  return {
+    score: score["score"],
+    challengeId: score["challenge_id"],
+    username: score["username"],
+    createdAt: new Date(score["created_at"]),
+  };
+};
+
+export const fetcher = (...args) => fetch(...args).then((res) => res.json());
