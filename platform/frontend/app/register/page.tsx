@@ -11,6 +11,7 @@ import {
   Title,
   Image,
   Alert,
+  Loader,
 } from "@mantine/core";
 import { IconArrowLeft, IconExclamationCircle } from "@tabler/icons-react";
 import Link from "next/link";
@@ -35,8 +36,10 @@ const Register = () => {
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoadingRegister, setIsLoadingRegister] = useState(false);
 
   const handleRegister = () => {
+    setIsLoadingRegister(true);
     client
       .post("register", {
         username,
@@ -44,13 +47,20 @@ const Register = () => {
         password,
       })
       .then(() => {
-        client.post("login", { username, email, password }).then(({ data }) => {
-          const { password, ...userData } = data;
-          updateUser(userData);
-          router.push("/");
-        });
+        client
+          .post("login", { username, email, password })
+          .then(({ data }) => {
+            const { password, ...userData } = data;
+            updateUser(userData);
+            setIsLoadingRegister(false);
+            router.push("/");
+          })
+          .catch(() => {
+            setIsLoadingRegister(false);
+          });
       })
       .catch((e) => {
+        setIsLoadingRegister(false);
         setAuthenticationError(
           "The username or password provided is incorrect."
         );
@@ -132,14 +142,17 @@ const Register = () => {
                 >
                   Back
                 </Button>
-                <Button
-                  variant="filled"
-                  radius="lg"
-                  onClick={handleRegister}
-                  disabled={!(username && password)}
-                >
-                  Submit
-                </Button>
+                <Group justify="end">
+                  <Button
+                    variant="filled"
+                    radius="lg"
+                    onClick={handleRegister}
+                    disabled={!(username && password) || isLoadingRegister}
+                  >
+                    Submit
+                  </Button>
+                  {isLoadingRegister && <Loader type="dots" />}
+                </Group>
               </Group>
             </>
           ) : (

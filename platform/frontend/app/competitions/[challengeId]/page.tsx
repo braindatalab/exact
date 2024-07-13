@@ -92,10 +92,14 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
     if (!challenge) {
       return;
     }
+    setSubmissionUploadError(null);
+    setSubmissionUploadScore(null);
     setSubmissionUploadProgress(90);
     setIsLoadingUploadSubmission(true);
     const formData = new FormData();
     formData.append("file", file);
+    const username = user && user.username ? user.username : "anonymous";
+    formData.append("username", username);
     client
       .post(`/api/xai/${challenge.id}/`, formData)
       .then((res) => {
@@ -108,12 +112,11 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
         }
         setSubmissionUploadProgress(100);
         setIsLoadingUploadSubmission(false);
-        // maybe show success message here or something
       })
       .catch((e: AxiosError) => {
         setSubmissionUploadProgress(100);
         setIsLoadingUploadSubmission(false);
-        setSubmissionUploadError(e.code === undefined ? null : e.code);
+        setSubmissionUploadError(e.message === undefined ? null : e.message);
       });
   };
 

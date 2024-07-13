@@ -11,6 +11,7 @@ import {
   Title,
   Image,
   Alert,
+  Loader,
 } from "@mantine/core";
 import { IconArrowLeft, IconExclamationCircle } from "@tabler/icons-react";
 import Link from "next/link";
@@ -35,8 +36,10 @@ const Login = () => {
   );
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoadingLogin, setIsLoadingLogin] = useState<boolean>(false);
 
   const handleLogin = () => {
+    setIsLoadingLogin(true);
     client
       .post(`/login`, {
         username,
@@ -47,9 +50,11 @@ const Login = () => {
         const { password, ...userData } = data;
         console.log(data);
         updateUser(userData);
+        setIsLoadingLogin(false);
         router.push("/");
       })
       .catch((e) => {
+        setIsLoadingLogin(false);
         setAuthenticationError(
           "The username or password provided is incorrect."
         );
@@ -134,14 +139,17 @@ const Login = () => {
                 >
                   Back
                 </Button>
-                <Button
-                  variant="filled"
-                  radius="lg"
-                  onClick={handleLogin}
-                  disabled={!(username && password)}
-                >
-                  Submit
-                </Button>
+                <Group justify="end">
+                  <Button
+                    variant="filled"
+                    radius="lg"
+                    onClick={handleLogin}
+                    disabled={!(username && password) || isLoadingLogin}
+                  >
+                    Submit
+                  </Button>
+                  {isLoadingLogin && <Loader type="dots" />}
+                </Group>
               </Group>
             </>
           ) : (

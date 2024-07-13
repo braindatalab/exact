@@ -11,3 +11,4 @@ class ChallengeForm(forms.Form):
 
 class ScoreForm(forms.Form):
     file = forms.FileField()
+    username= forms.CharField(max_length=100)

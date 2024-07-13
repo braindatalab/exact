@@ -25,10 +25,12 @@ def xai_detail(request, challenge_id):
     # Get the XAI method file from the request
     form = ScoreForm(request.POST, request.FILES)
     input_file = None
+    username = None
     if form.is_valid():
         input_file = form.cleaned_data['file']
+        username = form.cleaned_data['username']
 
-    if input_file is None:
+    if input_file is None or username is None:
         return Response({'error': f'error getting the input file'}, status=status.HTTP_400_BAD_REQUEST)
 
     file_contents = input_file.read().decode('utf-8')
@@ -41,7 +43,7 @@ def xai_detail(request, challenge_id):
         return Response({'message': message, score: None}, status=status.HTTP_200_OK)
 
     # Store score in the database
-    serializer = ScoreSerializer(data={'score': score, 'challenge_id': challenge_id, 'username': "testuser123"}) # TODO: replace 'username' field with real username
+    serializer = ScoreSerializer(data={'score': score, 'challenge_id': challenge_id, 'username': username})
     if serializer.is_valid():
         serializer.save()
         return Response({'message': message, 'score': serializer.data}, status=status.HTTP_201_CREATED)
@@ -136,7 +138,6 @@ def xaimethod_detail(request, challenge_id):
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 # POST request for creating a new challenge 
-@csrf_exempt
 @api_view(['POST'])
 def create_challenge(request):
     if request.method == 'POST':

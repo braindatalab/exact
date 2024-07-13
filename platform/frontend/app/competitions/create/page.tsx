@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useClient, useUser } from "@/app/components/UserContext";
 import {
+  Alert,
   Button,
   Divider,
   FileInput,
@@ -15,7 +16,7 @@ import {
   useMantineTheme,
 } from "@mantine/core";
 import { IconDataset, IconModel, IconTemplate } from "@/app/components/utils";
-import { IconArrowLeft } from "@tabler/icons-react";
+import { IconAlertHexagon, IconArrowLeft } from "@tabler/icons-react";
 import Link from "next/link";
 
 const CreateCompetition = () => {
@@ -87,6 +88,18 @@ const CreateCompetition = () => {
       <Paper p="xl" w="100%" shadow="md">
         <Title order={3}>Create a New Competition</Title>
         <Divider my="md" />
+        {!user && (
+          <Alert
+            variant="light"
+            color="yellow"
+            title="Alert"
+            icon={<IconAlertHexagon />}
+            mb="sm"
+          >
+            You are not logged in. You can still create a challenge as an
+            anonymous user, but maybe you want to log in first...
+          </Alert>
+        )}
         <TextInput
           label="Title"
           description="This title will be displayed for everyone to see"
