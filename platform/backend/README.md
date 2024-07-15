@@ -12,13 +12,13 @@
   - [XAI Detail](#xai-detail)
   - [Score Detail](#score-detail)
   - [Dataset Detail](#dataset-detail)
-  - [AI Detail](#ai-detail)
-  - [XAI Template](#xai-template)
-- [Data Model](#data-model)
-  - [XAI Method Model](#xai-method-model)
-  - [Score Model](#score-model)
-  - [Dataset Model](#dataset-model)
-  - [ML Model](#ml-model)
+  - [ML Model Detail](#ml-model-detail)
+  - [Challenge Form View](#challenge-form-view)
+  - [Success View](#success-view)
+  - [Get Challenge](#get-challenge)
+  - [Get Challenges](#get-challenges)
+  - [Get Scores](#get-scores)
+
 
 <h2>Requirements</h2>
 
@@ -29,102 +29,279 @@
 - djangorestframework==3.14.0
 - docker==6.1.3
 
-## Project Structure
-│ `Dockerfile`
-│ `manage.py`
-│ `requirements.txt`
-│ `__init__.py`
-│
-│ **``api``**
-│ │ `__init__.py`
-│ │ `apps.py`
-│ │ `models.py`
-│ │ `serializers.py`
-│ │ `tests.py`
-│ │ `views.py`
-│ │ `worker_utils.py`
-│ │
-│ │ **``migrations``**
-│ │ │ `0001_initial.py`
-│ │ │ `__init__.py`
-│  
-│ **``backend``**
-│
-│ **``dataset``**
-│ │ `train_data.pt`
-│
-│ **``ml_model``**
-│ │ `linear_1d1p_0.18_uncorrelated_LLR_1_0.pt`
-│
-│ **``mysite``**
-│ │ `settings.py`
-│ │ `urls.py`
-│ │ `wsgi.py`
-│ │ `init.py`
-│
-│ **``template``**
-│ │ `xai_template.py`
+## Backend directory tree structure (simplified)
+├── Dockerfile
+├── README.md
+├── api
+│   ├── apps.py
+│   ├── forms.py
+│   ├── migrations
+│   ├── models.py
+│   ├── serializers.py
+│   ├── templates
+│   │   └── api
+│   │       ├── challenge_form.html
+│   │       └── success.html
+│   ├── tests.py
+│   ├── utils
+│   ├── views.py
+│   └── worker_utils.py
+├── dataset
+├── manage.py
+├── media
+├── ml_model
+├── mysite
+│   ├── media
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi.py
+├── requirements.txt
+├── template
+└── user_api
+    ├── admin.py
+    ├── apps.py
+    ├── migrations
+    ├── models.py
+    ├── serializers.py
+    ├── tests.py
+    ├── urls.py
+    └── views.py
 
 ## *API Endpoints*
 
-### *Score Detail*
 
-- **URL** `/api/score/<int:challenge_id>/`
+### XAI Detail
+
+- **URL** `/api/xai/<str:challenge_id>/`
+- **Methods** POST
+- **Description** Endpoint to submit a XAI-method for a challenge and get an evaluation score. 
+- **Parameters**
+  - `challenge_id` (string): Identifier for the challenge.
+  - **Request Body**:
+    - `file` (file): The XAI method file to be submitted.
+    - `username` (string): The username of the person submitting the file.
+- **Response** 
+  - **POST**:
+    - **Success**:
+      - `message` (string): Status message.
+      - `score` (object): 
+        - `score` (number): The computed score.
+        - `challenge_id` (string): The challenge identifier.
+        - `username` (string): The username of the person who submitted the file.
+
+**Example Request:**
+
+```json
+POST /api/xai/challenge123/
+Content-Type: multipart/form-data
+{
+   "file": "<XAI method file>",
+   "username": "john_doe"
+}
+```
+
+### Score Detail
+
+- **URL** `/api/score/<str:challenge_id>/`
 - **Methods** GET, POST
 - **Description** Endpoint to retrieve or update scores for a challenge.
 - **Parameters**
-  - `challenge_id`: Number
+  - `challenge_id` (string): Identifier for the challenge.
 - **Response** 
-  - GET:
-    - `score`: Number
-  - POST:
-    - Newly create or update score
+  - **GET**:
+    - **Success**:
+      - `score` (object): 
+        - `score` (number): The score for the challenge.
+        - `challenge_id` (string): The challenge identifier.
+        - `username` (string): The username of the person who submitted the score.
+  - **POST**:
+    - **Success**:
+      - `score` (object): 
+        - `score` (number): The updated or newly created score.
+        - `challenge_id` (string): The challenge identifier.
+        - `username` (string): The username of the person who submitted the score.
 
-### *XAI Detail*
+**Example Request:**
 
-- **URL** `/api/xai/<int:challenge_id>/`
-- **Method** POST
-- **Description** 
-  - Endpoint to for XAI script upload
-  - Endpoint triggers creation of a worker (runs and evaluates xai method) container 
+```json
+GET /api/score/challenge123/
+
+POST /api/score/challenge123/
+Content-Type: application/json
+{
+    "score": 98,
+    "username": "john_doe"
+}
+```
+
+### Dataset Detail
+
+- **URL** `/api/dataset/<str:challenge_id>/`
+- **Methods** GET
+- **Description** Endpoint to download the dataset file associated with a specific challenge.
 - **Parameters**
-  - `challenge_id`: Number
-
-### *Dataset Detail*
-
-- **URL** `/api/dataset/<int:challenge_id>/`
-- **Method** GET
-- **Description** Endpoint to download dataset associated with a challenge
-- **Parameters**
-  - `challenge_id`: Number
+  - `challenge_id` (string): Identifier for the challenge.
 - **Response** 
-  - Dataset file in binary format
+  - **GET**:
+    - **Success**:
+      - The dataset file will be served as an attachment.
 
-### *AI Detail*
+**Example Request:**
 
-- **URL** `/api/mlmodel/<int:challenge_id>/`
-- **Method** GET
-- **Description** Endpoint to download trained machine learning model associated with a challenge
+```json
+GET /api/dataset/challenge123/
+```
+
+### ML Model Detail
+
+- **URL** `/api/mlmodel/<str:challenge_id>/`
+- **Methods** GET
+- **Description** Endpoint to download the ML model file associated with a specific challenge.
 - **Parameters**
-  - `challenge_id`: Number
+  - `challenge_id` (string): Identifier for the challenge.
 - **Response** 
-  - Trained machine learning model file in binary format
+  - **GET**:
+    - **Success**:
+      - The ML model file will be served as an attachment.
 
-### *XAI Template*
+**Example Request:**
 
-- **URL** `/api/xai_template/<int:challenge_id>/`
-- **Method** GET
-- **Description** Endpoint to download XAI template file associated with a challenge.
+```json
+GET /api/mlmodel/challenge123/
+```
+
+### XAI Method Detail
+
+- **URL** `/api/xaimethod/<str:challenge_id>/`
+- **Methods** GET
+- **Description** Endpoint to download the XAI method file associated with a specific challenge.
 - **Parameters**
-  - `challenge_id`: Number
+  - `challenge_id` (string): Identifier for the challenge.
 - **Response** 
-  - XAI template file in binary format
+  - **GET**:
+    - **Success**:
+      - The XAI method file will be served as an attachment.
 
-### *Score management*
-- **URL** `/api/newscore/`
-- **Method** POST
-- **Description** Endpoint to post a new score of a xai method associated to a challenge. 
+**Example Request:**
+
+```json
+GET /api/xaimethod/challenge123/
+```
+
+### Create Challenge
+
+- **URL** `/api/challenge/create/`
+- **Methods** POST
+- **Description** Endpoint for creating a new challenge.
+- **Request Body**:
+  - `title` (string): Title of the challenge.
+  - `description` (string): Description of the challenge.
+  - `xai_method` (file): XAI method file for the challenge.
+  - `dataset` (file): Dataset file for the challenge.
+  - `mlmodel` (file): ML model file for the challenge.
+- **Response** 
+  - **POST**:
+    - **Success**:
+      - `message` (string): Success message.
+
+**Example Request:**
+
+```json
+POST /api/challenge/create/
+Content-Type: multipart/form-data
+
+{
+    "title": "Example Challenge",
+    "description": "Description of the challenge.",
+    "xai_method": "<XAI method file>",
+    "dataset": "<Dataset file>",
+    "mlmodel": "<ML model file>"
+}
+```
+
+### Challenge Form View
+
+- **URL** `/challenge/form`
+- **Methods** POST
+- **Description** Endpoint for submitting a form to create a new challenge with a UI webpage. 
+- **Request Body**:
+  - `title` (string): Title of the challenge.
+  - `description` (string): Description of the challenge.
+  - `xai_method` (file): XAI method file for the challenge.
+  - `dataset` (file): Dataset file for the challenge.
+  - `mlmodel` (file): ML model file for the challenge.
+- **Response** 
+  - **POST**:
+    - **Success**:
+      - Redirects to a success page upon successful creation of the challenge.
+
+**Example Request:**
+
+```json
+POST /challenge/form
+Content-Type: multipart/form-data
+
+{
+    "title": "Example Challenge",
+    "description": "Description of the challenge.",
+    "xai_method": "<XAI method file>",
+    "dataset": "<Dataset file>",
+    "mlmodel": "<ML model file>"
+}
+```
+
+### Success View
+
+- **URL** `/success/`
+- **Methods** GET
+- **Description** Endpoint for displaying a success page after successfully creating a challenge.
+
+### Get Challenge
+
+- **URL** `/api/challenge/<str:challenge_id>/`
+- **Methods** GET
+- **Description** Endpoint to retrieve details of a specific challenge.
 - **Parameters**
-- `user_id`: String 
-- `challenge_id`: Number (ID of the challenge)
-- `score`: Float (score value)
+  - `challenge_id` (string): Identifier for the challenge.
+- **Response** 
+  - **GET**:
+    - **Success**:
+      - Returns details of the challenge as serialized data.
+
+**Example Request:**
+
+```json
+GET /api/challenge/challenge123/
+``` 
+
+### Get Challenges
+
+- **URL** `/api/challenges/`
+- **Methods** GET
+- **Description** Endpoint to retrieve a list of all challenges.
+- **Response** 
+  - **GET**:
+    - **Success**:
+      - Returns a list of challenges as serialized data.
+
+**Example Request:**
+
+```json
+GET /api/challenges/
+``` 
+
+### Get Scores
+
+- **URL** `/api/scores/`
+- **Methods** GET
+- **Description** Endpoint to retrieve a list of all scores.
+- **Response** 
+  - **GET**:
+    - **Success**:
+      - Returns a list of scores as serialized data.
+
+**Example Request:**
+
+```json
+GET /api/scores/
+```
