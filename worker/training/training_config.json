@@ -1,0 +1,12 @@
+{
+    "data_path": "path/to/dataset",
+    "output_dir": "path/to/output",
+    "data_scenario": "example_scenario",
+    "batch_size": 64,
+    "epochs": 100,
+    "patience": 10,
+    "lr": 0.001,
+    "runs_per_model": 3,
+    "models": ["LLR", "MLP", "CNN"],
+    "models_8x8": ["LLR", "MLP8by8", "CNN8by8"]
+}

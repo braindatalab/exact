@@ -89,6 +89,33 @@ def final_score():
     return emd_score
 
 
+# can be called with model file and data file as arguments
+def calculate_final_score(data_file, model_file, batch_size=None):
+    data_path = f"./data/{data_file}.pkl"
+    model_path = f"./ai_model/{model_file}.pt"
+
+    with open(data_path, 'rb') as file:
+        data = pkl.load(file)
+
+    model = load(model_path)
+    d = data[data_file]
+
+    if batch_size is None:
+        batch_size = len(d.x_train)
+
+    xai_scores = []
+    explanations = XAI_Method(d.x_train[:batch_size].to(t.float), d.y_train[:batch_size], model)
+    
+    for i in range(batch_size):
+        xai_score = continuous_emd(d.masks_train[i], explanations[i].detach().numpy())
+        xai_scores.append(xai_score)
+
+    print('Mean:', np.mean(xai_scores))
+    print('Std:', np.std(xai_scores))
+
+    return np.mean(xai_scores), np.std(xai_scores)
+
+
 score = final_score()
 print(f"FINAL_SCORE:{score}")
 

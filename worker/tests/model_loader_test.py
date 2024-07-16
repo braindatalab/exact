@@ -2,7 +2,7 @@ import torch
 import os
 
 # Configuration to specify source: 'local' for local directory, 'github' for GitHub repository
-source = 'local'  # Change to 'github' to load from GitHub
+source = 'github'  # Change to 'github' to load from GitHub
 repo_path = 'braindatalab/exact' # GitHub repository path
 
 # change to the base directory so hubconf.py can be found
