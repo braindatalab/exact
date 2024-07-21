@@ -33,10 +33,10 @@ def xai_detail(request, challenge_id):
     if input_file is None or username is None:
         return Response({'error': f'error getting the input file'}, status=status.HTTP_400_BAD_REQUEST)
 
-    file_contents = input_file.read().decode('utf-8')
+    xai_method = input_file.read().decode('utf-8')
 
     # Initialise a worker on the server that will evaluate the uploaded solution and return a score  
-    (message, score) = spawn_worker_container(uuid.uuid4().hex, challenge_id, file_contents)
+    (message, score) = spawn_worker_container(uuid.uuid4().hex, challenge_id, xai_method)
 
     # Return message in response when something went wrong while computing the score
     if (score == None):

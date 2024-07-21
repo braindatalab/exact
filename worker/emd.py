@@ -21,6 +21,9 @@ from ot.lp import emd
 # combined_mask = combined_mask.reshape((8,8))
 challenge_id = os.getenv('challenge_id')
 
+#xai_method string made from the submitted input file (see xai_detail view and spawn_worker_container() function for more details)
+xai_method = os.getenv('xai_method') 
+
 # euclidean distance cost matrix
 
 """
@@ -115,16 +118,11 @@ def calculate_final_score(data_file, model_file, batch_size=None):
 
     return np.mean(xai_scores), np.std(xai_scores)
 
-
+#TODO: check xai_method string for malicious code
+#TODO: make xai_method string into a model_file for calculate_final_score()
+#TODO: use calculate_final_score() and correct parameters to calculate real score
 score = final_score()
 print(f"FINAL_SCORE:{score}")
 
 post_data = {"user_id": "testid123", "challenge_id": challenge_id, "score": float(score)}
 print(post_data)
-
-# not working without a network:
-
-# post_url = "http://backend:8000/api/newscore/"
-# response = requests.post(post_url, json=post_data)
-# print("Status Code:", response.status_code)
-# print("Response JSON:", response.json())

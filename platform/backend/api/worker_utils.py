@@ -9,7 +9,7 @@ MAX_RUNNING_CONTAINERS = 3
 
 logger = logging.getLogger("utils")
 
-def spawn_worker_container(worker_id: str, challenge_id: str, file_contents: str):
+def spawn_worker_container(worker_id: str, challenge_id: str, xai_method: str):
     # logger
     logging.basicConfig(filename="utils.log", filemode="w", format="%(asctime)s - %(levelname)s - %(message)s")
     logger = logging.getLogger("utils")
@@ -44,7 +44,7 @@ def spawn_worker_container(worker_id: str, challenge_id: str, file_contents: str
             image = "exact-worker",
             detach=True,
             name = worker_id,
-            environment={'worker_id':worker_id, 'challenge_id':challenge_id, 'file_contents':file_contents} # pass important data as env variables
+            environment={'worker_id':worker_id, 'challenge_id':challenge_id, 'xai_method':xai_method} # pass important data as env variables
         )
         
         container.wait()        
