@@ -5,16 +5,23 @@ This web application provides users with ML models and datasets, and evaluates t
 # Requirements:
 
 The only requirement needed for this project is docker, and enough local storage (~10 Gb).
+We recommend Docker Desktop for managing the images and containers. (Link: https://www.docker.com/products/docker-desktop/)
 
 # How to run the platform:
 
 ### building images
 
-inside the folder containing the repository, please run the following command:
+Inside the folder containing the repository, please run the following command:
+
+`docker compose build`
+
+The first time you run it, it might take a few minutes to finish installing all dependencies and building the images.
+
+If you want to start all containers and the services attached to them (note: also starts a worker container):
 
 `docker compose up`
 
-The first time you run it, it might take a few minutes to finish installing all dependencies and building the images.
+Important: If you use Docker Desktop you need to have the app open for this to work.
 
 ### running Django migrations
 
