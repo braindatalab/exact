@@ -107,6 +107,7 @@ def calculate_final_score(data_file, model_file, batch_size=None):
         batch_size = len(d.x_train)
 
     xai_scores = []
+    #TODO: change to user submitted xai_method, at the moment LRP from upload.py is called
     explanations = XAI_Method(d.x_train[:batch_size].to(t.float), d.y_train[:batch_size], model)
     
     for i in range(batch_size):
@@ -119,7 +120,7 @@ def calculate_final_score(data_file, model_file, batch_size=None):
     return np.mean(xai_scores), np.std(xai_scores)
 
 #TODO: check xai_method string for malicious code
-#TODO: make xai_method string into a model_file for calculate_final_score()
+#TODO: change calculate_final_score() to accept xai_method from user
 #TODO: use calculate_final_score() and correct parameters to calculate real score
 score = final_score()
 print(f"FINAL_SCORE:{score}")
