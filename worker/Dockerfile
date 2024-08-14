@@ -19,12 +19,5 @@ RUN pip install scipy==1.14.0
 COPY . /worker/
 
 
-# Run app.py when the container launches
-# When instantiating worker containers from backend, use this
+# Run emd.py when the container launches
 CMD ["python", "emd.py"]
-
-# temporary solution, given that we only need one working
-# up and running along the platform.
-# command to execute evaluation script from within the container
-# docker exec -it evalxai-worker-1 python evaluate.py
-#CMD ["sleep", "infinity"]
