@@ -93,7 +93,7 @@ def final_score():
 
 
 # can be called with model file and data file as arguments
-def calculate_final_score(data_file, model_file, batch_size=None):
+def calculate_final_score(data_file = "linear_1d1p_0.18_uncorrelated", model_file = "linear_1d1p_0.18_uncorrelated_LLR_1_0", batch_size=None):
     data_path = f"./data/{data_file}.pkl"
     model_path = f"./ai_model/{model_file}.pt"
 
@@ -107,8 +107,21 @@ def calculate_final_score(data_file, model_file, batch_size=None):
         batch_size = len(d.x_train)
 
     xai_scores = []
+
     #TODO: change to user submitted xai_method, at the moment LRP from upload.py is called
-    explanations = XAI_Method(d.x_train[:batch_size].to(t.float), d.y_train[:batch_size], model)
+    #explanations = XAI_Method(d.x_train[:batch_size].to(t.float), d.y_train[:batch_size], model)
+
+    # TODO check security of xai_method string - if xai_method is malicious, it can execute arbitrary code
+    # Perform the conversion outside
+    x_train_batch = d.x_train[:batch_size].to(t.float)
+    y_train_batch = d.y_train[:batch_size]
+
+    # Execute the XAI method definition
+    exec(xai_method)
+
+    # Evaluate the function call
+    explanations = eval('XAI_Method(x_train_batch, y_train_batch, model)', {'XAI_Method': XAI_Method, 'x_train_batch': x_train_batch, 'y_train_batch': y_train_batch, 'model': model})
+
     
     for i in range(batch_size):
         xai_score = continuous_emd(d.masks_train[i], explanations[i].detach().numpy())
