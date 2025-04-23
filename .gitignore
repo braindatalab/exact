@@ -4,8 +4,6 @@ node_modules
 settings.json
 node_modules
 package-lock.json
-.env
 todo
-env
 media
 *.log

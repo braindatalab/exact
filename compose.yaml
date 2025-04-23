@@ -20,6 +20,8 @@ services:
       - ./platform/backend/mysite/media:/app/mysite/media  
     depends_on:
       - db
+    env_file:
+      - .env
 
   frontend:
     image: exact-frontend
