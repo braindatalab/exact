@@ -123,6 +123,7 @@ const CreateCompetition = () => {
         />
         <Group justify="center" grow mt="sm">
           <FileInput
+            accept=".pkl,.npz,.csv"
             leftSection={<IconDataset />}
             label="Dataset"
             placeholder="Click to select a file"
@@ -132,6 +133,7 @@ const CreateCompetition = () => {
             clearable
           />
           <FileInput
+            accept=".pt,.h5,.onnx"
             leftSection={<IconModel />}
             label="ML Model"
             placeholder="Click to select a file"
@@ -141,6 +143,7 @@ const CreateCompetition = () => {
             clearable
           />
           <FileInput
+            accept=".py"
             leftSection={<IconTemplate />}
             label="XAI Method Template"
             placeholder="Click to select a file"
