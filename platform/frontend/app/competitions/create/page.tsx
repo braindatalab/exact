@@ -19,6 +19,10 @@ import { IconDataset, IconModel, IconTemplate } from "@/app/components/utils";
 import { IconAlertHexagon, IconArrowLeft } from "@tabler/icons-react";
 import Link from "next/link";
 
+const MAX_DATASET_SIZE = 10 * 1024 * 1024; // 10 MB
+const MAX_MODEL_SIZE = 50 * 1024 * 1024;   // 50 MB
+const MAX_XAI_SIZE = 5 * 1024 * 1024;      // 5 MB
+
 const CreateCompetition = () => {
   const router = useRouter();
   const user = useUser();
@@ -45,11 +49,16 @@ const CreateCompetition = () => {
       return;
     }
 
+    if (!title.trim()) {
+      alert("Please enter a title.");
+      return;
+    }
+
     setIsLoadingPublish(true);
 
     let formData = new FormData();
     formData.append("title", title);
-    formData.append("description", description);
+    formData.append("description", description || " "); // falls keine Description, einfach nichts schicken
     formData.append("dataset", dataset);
     formData.append("mlmodel", model);
     formData.append("xai_method", xaiMethod);
@@ -129,9 +138,19 @@ const CreateCompetition = () => {
             placeholder="Click to select a file"
             leftSectionPointerEvents="none"
             value={dataset}
-            onChange={setDataset}
+            onChange={(file) => {
+              if (file) {
+                if (file.size > MAX_DATASET_SIZE) {
+                  alert("Dataset is too large (max. 10 MB)");
+                  return;
+                }
+              }
+              setDataset(file);
+            }}
             clearable
           />
+
+
           <FileInput
             accept=".pt,.h5,.onnx"
             leftSection={<IconModel />}
@@ -139,9 +158,16 @@ const CreateCompetition = () => {
             placeholder="Click to select a file"
             leftSectionPointerEvents="none"
             value={model}
-            onChange={setModel}
+            onChange={(file) => {
+              if (file && file.size > MAX_MODEL_SIZE) {
+                alert("Model file is too large (max. 50 MB)");
+                return;
+              }
+              setModel(file);
+            }}
             clearable
           />
+
           <FileInput
             accept=".py"
             leftSection={<IconTemplate />}
@@ -149,9 +175,16 @@ const CreateCompetition = () => {
             placeholder="Click to select a file"
             leftSectionPointerEvents="none"
             value={xaiMethod}
-            onChange={setXaiMethod}
+            onChange={(file) => {
+              if (file && file.size > MAX_XAI_SIZE) {
+                alert("XAI method file is too large (max. 5 MB)");
+                return;
+              }
+              setXaiMethod(file);
+            }}
             clearable
           />
+
         </Group>
         <Group justify="end" mt="lg">
           <Button variant="light">Preview</Button>
