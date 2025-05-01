@@ -17,7 +17,6 @@ import {
 } from "@mantine/core";
 import { IconAlertHexagon, IconArrowLeft } from "@tabler/icons-react";
 import Link from "next/link";
-import FileUpload from "@/app/components/FileUpload";
 
 const CreateCompetition = () => {
   const router = useRouter();
@@ -47,11 +46,16 @@ const CreateCompetition = () => {
       return;
     }
 
+    if (!title.trim()) {
+      alert("Please enter a title.");
+      return;
+    }
+
     setIsLoadingPublish(true);
 
     let formData = new FormData();
     formData.append("title", title);
-    formData.append("description", description);
+    formData.append("description", description || " "); // falls keine Description, einfach nichts schicken
     formData.append("dataset", dataset);
     formData.append("mlmodel", model);
     formData.append("xai_method", xaiMethod);
@@ -123,22 +127,38 @@ const CreateCompetition = () => {
           }}
           mt="sm"
         />
-        <Group justify="center" grow mt="sm" gap="md">
-          <FileUpload
-            type="dataset"
-            onFileSelect={(file) => setDataset(file)}
-            isDarkMode={isDark}
+        <Group justify="center" grow mt="sm">
+          <FileInput
+            accept=".pkl,.npz,.csv"
+            leftSection={<IconDataset />}
+            label="Dataset"
+            placeholder="Click to select a file"
+            leftSectionPointerEvents="none"
+            value={dataset}
+            onChange={setDataset}
+            clearable
           />
-          <FileUpload
-            type="model"
-            onFileSelect={(file) => setModel(file)}
-            isDarkMode={isDark}
+          <FileInput
+            accept=".pt,.h5,.onnx"
+            leftSection={<IconModel />}
+            label="ML Model"
+            placeholder="Click to select a file"
+            leftSectionPointerEvents="none"
+            value={model}
+            onChange={setModel}
+            clearable
           />
-          <FileUpload
-            type="xai"
-            onFileSelect={(file) => setXaiMethod(file)}
-            isDarkMode={isDark}
+          <FileInput
+            accept=".py"
+            leftSection={<IconTemplate />}
+            label="XAI Method Template"
+            placeholder="Click to select a file"
+            leftSectionPointerEvents="none"
+            value={xaiMethod}
+            onChange={setXaiMethod}
+            clearable
           />
+
         </Group>
         <Group justify="end" mt="lg">
           <Button variant="light">Preview</Button>
