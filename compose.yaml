@@ -17,7 +17,8 @@ services:
     user: root
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./platform/backend/mysite/media:/app/mysite/media  
+      # - ./platform/backend/mysite/media:/app/mysite/media  
+      - ./media:/app/mysite/media
     depends_on:
       - db
     env_file:
