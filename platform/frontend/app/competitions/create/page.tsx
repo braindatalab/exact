@@ -6,7 +6,6 @@ import {
   Alert,
   Button,
   Divider,
-  FileInput,
   Group,
   Loader,
   Paper,
@@ -14,15 +13,18 @@ import {
   Textarea,
   Title,
   useMantineTheme,
+  useMantineColorScheme,
 } from "@mantine/core";
-import { IconDataset, IconModel, IconTemplate } from "@/app/components/utils";
 import { IconAlertHexagon, IconArrowLeft } from "@tabler/icons-react";
 import Link from "next/link";
+import FileUpload from "@/app/components/FileUpload";
 
 const CreateCompetition = () => {
   const router = useRouter();
   const user = useUser();
   const theme = useMantineTheme();
+  const { colorScheme } = useMantineColorScheme();
+  const isDark = colorScheme === 'dark';
 
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
@@ -121,36 +123,21 @@ const CreateCompetition = () => {
           }}
           mt="sm"
         />
-        <Group justify="center" grow mt="sm">
-          <FileInput
-            accept=".pkl,.npz,.csv"
-            leftSection={<IconDataset />}
-            label="Dataset"
-            placeholder="Click to select a file"
-            leftSectionPointerEvents="none"
-            value={dataset}
-            onChange={setDataset}
-            clearable
+        <Group justify="center" grow mt="sm" gap="md">
+          <FileUpload
+            type="dataset"
+            onFileSelect={(file) => setDataset(file)}
+            isDarkMode={isDark}
           />
-          <FileInput
-            accept=".pt,.h5,.onnx"
-            leftSection={<IconModel />}
-            label="ML Model"
-            placeholder="Click to select a file"
-            leftSectionPointerEvents="none"
-            value={model}
-            onChange={setModel}
-            clearable
+          <FileUpload
+            type="model"
+            onFileSelect={(file) => setModel(file)}
+            isDarkMode={isDark}
           />
-          <FileInput
-            accept=".py"
-            leftSection={<IconTemplate />}
-            label="XAI Method Template"
-            placeholder="Click to select a file"
-            leftSectionPointerEvents="none"
-            value={xaiMethod}
-            onChange={setXaiMethod}
-            clearable
+          <FileUpload
+            type="xai"
+            onFileSelect={(file) => setXaiMethod(file)}
+            isDarkMode={isDark}
           />
         </Group>
         <Group justify="end" mt="lg">
