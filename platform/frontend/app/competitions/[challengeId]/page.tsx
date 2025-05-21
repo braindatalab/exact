@@ -34,10 +34,14 @@ import {
 import { AxiosError } from "axios";
 import { IconInfoCircle } from "@tabler/icons-react";
 import useSWR from "swr";
+import SubmissionUpload from "@/app/components/SubmissionUpload";
+import { useMantineColorScheme } from "@mantine/core";
 
 const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
   const client = useClient();
   const user = useUser();
+  const { colorScheme } = useMantineColorScheme();
+  const isDark = colorScheme === 'dark';
   const [challenge, setChallenge] = useState<ChallengeData | null>(null);
   const [error, setError] = useState<AxiosError | null>(null);
   const [isUploadSubmissionModalOpen, setIsUploadSubmissionModalOpen] =
@@ -83,6 +87,18 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
         setError(e);
       });
   }, [client, params.challengeId]);
+
+  React.useEffect(() => {
+    if (!isLoadingUploadSubmission && uploadSubmissionFile && submissionUploadProgress === 100 && !submissionUploadError) {
+      setTimeout(() => {
+        setIsUploadSubmissionModalOpen(false);
+        setUploadSubmissionFile(null);
+        setSubmissionUploadProgress(0);
+        setSubmissionUploadScore(null);
+        setSubmissionUploadError(null);
+      }, 1000); // 1 Sekunde nach Abschluss schließen
+    }
+  }, [isLoadingUploadSubmission, uploadSubmissionFile, submissionUploadProgress, submissionUploadError]);
 
   if (error && error.response && error.response.status === 404) {
     notFound();
@@ -198,7 +214,7 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
               <Text size="xl" fw="600" ta="center">
                 Your Submissions
               </Text>
-              <Divider mb="sm" />
+              <Divider my="sm" />
               {user ? (
                 isLoadingScoreData && scores.length === 0 ? (
                   <Center>
@@ -228,11 +244,11 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
               ) : (
                 <Text>You are not logged in...</Text>
               )}
-              <Group justify="flex-end">
+              <Group justify="center" mt="md">
                 <Button
-                  onClick={() => {
-                    setIsUploadSubmissionModalOpen(true);
-                  }}
+                  variant="gradient"
+                  gradient={{ from: "blue", to: "cyan", deg: 90 }}
+                  onClick={() => setIsUploadSubmissionModalOpen(true)}
                 >
                   Add Submission
                 </Button>
@@ -423,82 +439,29 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
         opened={isUploadSubmissionModalOpen}
         onClose={() => {
           setIsUploadSubmissionModalOpen(false);
-          setSubmissionUploadError(null);
-          setSubmissionUploadScore(null);
           setUploadSubmissionFile(null);
           setSubmissionUploadProgress(0);
+          setSubmissionUploadScore(null);
+          setSubmissionUploadError(null);
         }}
         title="Upload Submission"
-        centered
+        size="lg"
       >
-        <FileInput
-          accept=".py"
-          label="Upload file with your XAI method"
-          value={uploadSubmissionFile}
-          onChange={(file) => {
-            setSubmissionUploadError(null);
-            setSubmissionUploadScore(null);
-            setSubmissionUploadProgress(0);
+        <SubmissionUpload
+          onFileSelect={(file) => {
             setUploadSubmissionFile(file);
+            addSubmission(file);
           }}
-          placeholder="Upload files"
-          disabled={isLoadingUploadSubmission}
+          isDarkMode={isDark}
+          isLoading={isLoadingUploadSubmission}
+          error={submissionUploadError}
+          progress={submissionUploadProgress}
         />
-        <Group justify="flex-end" mt="sm">
-          <Button
-            disabled={isLoadingUploadSubmission || !uploadSubmissionFile}
-            onClick={() => {
-              if (!uploadSubmissionFile) {
-                return;
-              }
-              addSubmission(uploadSubmissionFile);
-            }}
-          >
-            Upload
-          </Button>
-        </Group>
-        {uploadSubmissionFile !== null && (
-          <>
-            <Divider my="sm" />
-            <Group justify="space-between">
-              <Text>Status: {` ${determineSubmissionEvaluationStatus()}`}</Text>
-              {submissionUploadScore && (
-                <Text>
-                  Score:{" "}
-                  <Text
-                    span
-                    c="green"
-                    inherit
-                    fw={700}
-                  >{` ${submissionUploadScore.score.toFixed(4)}`}</Text>
-                </Text>
-              )}
-            </Group>
-            <Progress
-              value={submissionUploadProgress}
-              transitionDuration={750}
-              mt="sm"
-              animated={isLoadingUploadSubmission}
-              color={
-                submissionUploadScore
-                  ? "green"
-                  : submissionUploadError
-                  ? "red"
-                  : "blue"
-              }
-            />
-            {submissionUploadError !== null && (
-              <Alert
-                variant="light"
-                color="red"
-                title="Submission Upload Error"
-                icon={<IconInfoCircle />}
-                mt="sm"
-              >
-                {submissionUploadError}
-              </Alert>
-            )}
-          </>
+        {isLoadingUploadSubmission && (
+          <div className="flex justify-center items-center mt-4">
+            <Loader type="dots" />
+            <span className="ml-2">Upload läuft...</span>
+          </div>
         )}
       </Modal>
     </main>
