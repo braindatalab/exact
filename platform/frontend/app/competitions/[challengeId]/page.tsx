@@ -88,6 +88,18 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
       });
   }, [client, params.challengeId]);
 
+  React.useEffect(() => {
+    if (!isLoadingUploadSubmission && uploadSubmissionFile && submissionUploadProgress === 100 && !submissionUploadError) {
+      setTimeout(() => {
+        setIsUploadSubmissionModalOpen(false);
+        setUploadSubmissionFile(null);
+        setSubmissionUploadProgress(0);
+        setSubmissionUploadScore(null);
+        setSubmissionUploadError(null);
+      }, 1000); // 1 Sekunde nach Abschluss schließen
+    }
+  }, [isLoadingUploadSubmission, uploadSubmissionFile, submissionUploadProgress, submissionUploadError]);
+
   if (error && error.response && error.response.status === 404) {
     notFound();
   }
@@ -445,6 +457,12 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
           error={submissionUploadError}
           progress={submissionUploadProgress}
         />
+        {isLoadingUploadSubmission && (
+          <div className="flex justify-center items-center mt-4">
+            <Loader type="dots" />
+            <span className="ml-2">Upload läuft...</span>
+          </div>
+        )}
       </Modal>
     </main>
   );
