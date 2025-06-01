@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model, authenticate
+from .models import Company
 
 UserModel = get_user_model()
 
@@ -7,10 +8,14 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = UserModel
 		fields = '__all__'
+
 	def create(self, clean_data):
+		company_name = clean_data.get('company', '')
 		user_obj = UserModel.objects.create_user(username=clean_data['username'], email=clean_data['email'], password=clean_data['password'])
 		user_obj.username = clean_data['username']
 		user_obj.save()
+
+		Company.objects.create(user=user_obj, name=company_name) 
 		return user_obj
 
 class UserLoginSerializer(serializers.Serializer):
