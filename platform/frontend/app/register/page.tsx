@@ -34,6 +34,7 @@ const Register = () => {
     null
   );
   const [email, setEmail] = useState("");
+  const [company, setCompany] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoadingRegister, setIsLoadingRegister] = useState(false);
@@ -43,6 +44,7 @@ const Register = () => {
     client
       .post("register", {
         username,
+        company,
         email,
         password,
       })
@@ -115,6 +117,13 @@ const Register = () => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+              />
+              <TextInput
+                label="Company"
+                placeholder="Enter your company name"
+                type="text"
+                value={company}
+                onChange={(e) => setCompany(e.target.value)}
               />
               <TextInput
                 mt="sm"

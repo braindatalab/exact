@@ -1,31 +1,24 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
 import { 
   Button, 
-  Center, 
   Paper, 
-  Stepper, 
   Text, 
   Title, 
   Container,
   Group,
   Stack,
-  Card,
   Badge,
   ThemeIcon,
-  SimpleGrid,
-  Divider
+  SimpleGrid
 } from "@mantine/core";
 import {
   IconAward,
-  IconClick,
   IconSelect,
   IconUpload,
   IconUserPlus,
   IconChartBar,
-  IconTarget,
-  IconUsers,
   IconTrophy
 } from "@tabler/icons-react";
 
@@ -58,8 +51,6 @@ const steps = [
 ];
 
 export default function Home() {
-  const [stepperActive, setStepperActive] = useState(0);
-
   return (
     <main className="flex flex-1 flex-col bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen">
       <Container size="xl" py={60}>
@@ -87,30 +78,6 @@ export default function Home() {
               Explore and participate in Explainable AI Benchmarking Challenges.
             </Text>
           </div>
-
-          <Group spacing="md">
-            <Button
-              size="lg"
-              radius="xl"
-              variant="gradient"
-              gradient={{ from: "blue", to: "cyan", deg: 90 }}
-              component={Link}
-              href="/register"
-              leftIcon={<IconUserPlus />}
-            >
-              Get Started - Create Account
-            </Button>
-            <Button
-              size="lg"
-              radius="xl"
-              variant="light"
-              component={Link}
-              href="/competitions"
-              leftIcon={<IconTrophy />}
-            >
-              Browse Competitions
-            </Button>
-          </Group>
         </Stack>
 
         {/* How It Works Section */}
@@ -122,62 +89,36 @@ export default function Home() {
           </div>
 
           <Paper shadow="sm" p="xl" radius="lg" w="100%" maw={1000}>
-            <Stepper
-              active={stepperActive}
-              onStepClick={setStepperActive}
-              size="lg"
-              orientation="horizontal"
-              breakpoint="sm"
-            >
+            <SimpleGrid cols={5} breakpoints={[{ maxWidth: 768, cols: 1 }]} spacing="xl">
               {steps.map((s, i) => (
-                <Stepper.Step
-                  label={s.step}
-                  description={s.description}
-                  key={i}
-                  icon={s.icon}
-                  allowStepSelect={false}
-                >
-                  <Stack align="center" spacing="md" py="xl">
-                    <ThemeIcon
-                      size={60}
-                      radius="xl"
-                      variant="gradient"
-                      gradient={{ from: "blue", to: "cyan", deg: 90 }}
-                    >
-                      {s.icon}
-                    </ThemeIcon>
-                    <div style={{ textAlign: "center" }}>
-                      <Text fw={600} size="lg" mb="xs">
-                        {s.step}
-                      </Text>
-                      <Text color="dimmed">
-                        {s.description}
-                      </Text>
-                    </div>
-                  </Stack>
-                </Stepper.Step>
+                <Stack key={i} align="center" spacing="md">
+                  <ThemeIcon
+                    size={60}
+                    radius="xl"
+                    variant="gradient"
+                    gradient={{ from: "blue", to: "cyan", deg: 90 }}
+                  >
+                    {s.icon}
+                  </ThemeIcon>
+                  <Badge 
+                    variant="light" 
+                    color="blue" 
+                    size="lg"
+                    radius="xl"
+                  >
+                    Step {i + 1}
+                  </Badge>
+                  <div style={{ textAlign: "center" }}>
+                    <Text fw={600} size="lg" mb="xs">
+                      {s.step}
+                    </Text>
+                    <Text color="dimmed" size="sm">
+                      {s.description}
+                    </Text>
+                  </div>
+                </Stack>
               ))}
-            </Stepper>
-            
-            <Divider my="xl" />
-            
-            <Group position="center" spacing="md">
-              <Button
-                variant="outline"
-                onClick={() => setStepperActive(Math.max(0, stepperActive - 1))}
-                disabled={stepperActive === 0}
-              >
-                Previous
-              </Button>
-              <Button
-                onClick={() => setStepperActive(Math.min(steps.length - 1, stepperActive + 1))}
-                disabled={stepperActive === steps.length - 1}
-                variant="gradient"
-                gradient={{ from: "blue", to: "cyan", deg: 90 }}
-              >
-                Next
-              </Button>
-            </Group>
+            </SimpleGrid>
           </Paper>
 
           {/* Final CTA */}
