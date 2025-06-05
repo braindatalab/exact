@@ -30,6 +30,7 @@ import {
   convertScore,
   fetcher,
   BASE_URL_API,
+  formatDateGerman,
 } from "@/app/components/utils";
 import { AxiosError } from "axios";
 import { IconInfoCircle } from "@tabler/icons-react";
@@ -232,7 +233,7 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
                         return [
                           ...t,
                           [
-                            s.createdAt.toISOString(),
+                            formatDateGerman(s.createdAt),
                             "coming soon...",
                             s.score,
                           ],
@@ -264,17 +265,17 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
               <Group justify="space-between">
                 <Text>Created by</Text>
                 <Text>
-                  {challenge.creator ? challenge.creator : "creator unknown"}
+                  {challenge.creator || "Kein Creator angegeben"}
                 </Text>
               </Group>
               <Group justify="space-between">
                 <Text>Created at</Text>
-                <Text>{challenge.createdAt.toISOString()}</Text>
+                <Text>{formatDateGerman(challenge.createdAt)}</Text>
               </Group>
               <Group justify="space-between">
                 <Text>Closes on</Text>
                 <Text>
-                  {challenge.deadline ? challenge.deadline.toISOString() : "-"}
+                  {challenge.deadline ? formatDateGerman(challenge.deadline) : "-"}
                 </Text>
               </Group>
               <Group justify="space-between">
@@ -289,6 +290,28 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
                 <Text>Challenge ID</Text>
                 <Text>{challenge.id}</Text>
               </Group>
+              {user && user.username && challenge.creator && user.username === challenge.creator && (
+                <Button
+                  color="red"
+                  mt="lg"
+                  fullWidth
+                  onClick={() => {
+                    if (window.confirm('Möchtest du diese Challenge wirklich löschen?')) {
+                      client
+                        .delete(`/api/challenge/${challenge.id}/delete/`)
+                        .then(() => {
+                          window.location.href = '/competitions';
+                        })
+                        .catch((err) => {
+                          console.error('Error deleting challenge:', err);
+                          alert('Fehler beim Löschen der Challenge. Bitte versuche es erneut.');
+                        });
+                    }
+                  }}
+                >
+                  Challenge löschen
+                </Button>
+              )}
             </Paper>
             <Paper shadow="md" mt="lg" p="sm">
               <Text size="xl" fw="600" ta="center">

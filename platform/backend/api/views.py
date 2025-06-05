@@ -151,6 +151,9 @@ def create_challenge(request):
             xai_method_file = form.cleaned_data['xai_method']
             dataset_file = form.cleaned_data['dataset']
             mlmodel_file = form.cleaned_data['mlmodel']
+            
+            # Get creator from request data or use authenticated user
+            creator = request.user.username if request.user.is_authenticated else request.data.get('creator', None)
 
             # generate a unique challenge_id in form of a string 
             unique_id = str(uuid.uuid4())
@@ -163,6 +166,7 @@ def create_challenge(request):
                 xaimethod=xai_method_file,
                 dataset=dataset_file,
                 mlmodel=mlmodel_file,
+                creator=creator,
             )
             new_challenge.save()
             
@@ -185,6 +189,8 @@ def challenge_form_view(request):
             xai_method_file = form.cleaned_data['xai_method']
             dataset_file = form.cleaned_data['dataset']
             mlmodel_file = form.cleaned_data['mlmodel']
+            # Get creator from authenticated user or form data
+            creator = request.user.username if request.user.is_authenticated else form.cleaned_data.get('creator', None)
 
             # generate a unique challenge_id in form of a string 
             unique_id = str(uuid.uuid4())
@@ -197,6 +203,7 @@ def challenge_form_view(request):
                 xaimethod=xai_method_file,
                 dataset=dataset_file,
                 mlmodel=mlmodel_file,
+                creator=creator,
             )
             new_challenge.save()
     
@@ -241,3 +248,19 @@ def get_scores(request):
     scores = Score.objects.all()
     serializer = ScoreSerializer(scores, many=True)
     return Response(serializer.data)
+
+# delete a challenge
+@api_view(['DELETE'])
+def delete_challenge(request, challenge_id):
+    try:
+        challenge = get_object_or_404(Challenge, challenge_id=challenge_id)
+        
+        # Optional: Check if the user has permission to delete the challenge
+        # if request.user.username != challenge.creator and not request.user.is_staff:
+        #     return Response({"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN)
+        
+        # Delete the challenge
+        challenge.delete()
+        return Response({"message": "Challenge deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
