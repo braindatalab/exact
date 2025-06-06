@@ -91,34 +91,19 @@ const FileUpload: React.FC<FileUploadProps> = ({ type, onFileSelect, isDarkMode 
         multiple
       />
       
-      <div className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'} w-full`}>
+      <div className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
         <div className="text-lg font-medium mb-2">{getTitle()}</div>
-        <div className="text-sm w-full">
+        <div className="text-sm">
           {pendingFiles.length === 0 ? (
             <>
               <p>Klicken oder Datei hierher ziehen</p>
               <p className="text-xs mt-2">Maximale Dateigröße: 200MB</p>
             </>
           ) : (
-            <div className="max-h-60 overflow-y-auto w-full">
+            <div className="max-h-60 overflow-y-auto">
               {pendingFiles.map((file, index) => (
-                <div key={index} className="flex items-center w-full min-w-0 text-left p-2 border-b last:border-b-0">
-                  <span
-                    className="flex-1 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap mr-2"
-                    title={file.name}
-                  >
-                    {file.name}
-                  </span>
-                  <button
-                    className="ml-2 text-red-500 hover:text-red-700 text-xs border border-red-300 rounded px-2 py-1 flex-shrink-0"
-                    onClick={e => {
-                      e.stopPropagation();
-                      setPendingFiles(prev => prev.filter((_, i) => i !== index));
-                    }}
-                    title="Entfernen"
-                  >
-                    Entfernen
-                  </button>
+                <div key={index} className="text-left p-2 border-b last:border-b-0">
+                  {file.name}
                 </div>
               ))}
             </div>

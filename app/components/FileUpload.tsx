@@ -4,11 +4,17 @@ interface FileUploadProps {
   type: 'dataset' | 'model' | 'xai';
   onFileSelect: (file: File) => void;
   isDarkMode?: boolean;
+  accept?: string;
+  maxSize?: number;
 }
 
-const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB
-
-const FileUpload: React.FC<FileUploadProps> = ({ type, onFileSelect, isDarkMode = false }) => {
+const FileUpload: React.FC<FileUploadProps> = ({ 
+  type, 
+  onFileSelect, 
+  isDarkMode = false,
+  accept,
+  maxSize = 200 * 1024 * 1024 // 200MB default
+}) => {
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -31,8 +37,12 @@ const FileUpload: React.FC<FileUploadProps> = ({ type, onFileSelect, isDarkMode 
     
     const droppedFiles = Array.from(e.dataTransfer.files);
     const validFiles = droppedFiles.filter(file => {
-      if (file.size > MAX_FILE_SIZE) {
-        alert(`${file.name} überschreitet die maximale Dateigröße von 200 MB und wurde nicht hinzugefügt.`);
+      if (file.size > maxSize) {
+        alert(`${file.name} überschreitet die maximale Dateigröße von ${maxSize / (1024 * 1024)} MB und wurde nicht hinzugefügt.`);
+        return false;
+      }
+      if (accept && !accept.split(',').some(ext => file.name.toLowerCase().endsWith(ext))) {
+        alert(`${file.name} hat ein ungültiges Dateiformat. Erlaubte Formate: ${accept}`);
         return false;
       }
       return true;
@@ -48,8 +58,12 @@ const FileUpload: React.FC<FileUploadProps> = ({ type, onFileSelect, isDarkMode 
     if (e.target.files) {
       const selectedFiles = Array.from(e.target.files);
       const validFiles = selectedFiles.filter(file => {
-        if (file.size > MAX_FILE_SIZE) {
-          alert(`${file.name} überschreitet die maximale Dateigröße von 200 MB und wurde nicht hinzugefügt.`);
+        if (file.size > maxSize) {
+          alert(`${file.name} überschreitet die maximale Dateigröße von ${maxSize / (1024 * 1024)} MB und wurde nicht hinzugefügt.`);
+          return false;
+        }
+        if (accept && !accept.split(',').some(ext => file.name.toLowerCase().endsWith(ext))) {
+          alert(`${file.name} hat ein ungültiges Dateiformat. Erlaubte Formate: ${accept}`);
           return false;
         }
         return true;
@@ -88,7 +102,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ type, onFileSelect, isDarkMode 
         type="file"
         className="hidden"
         onChange={handleFileSelect}
-        multiple
+        accept={accept}
       />
       
       <div className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'} w-full`}>
@@ -97,7 +111,8 @@ const FileUpload: React.FC<FileUploadProps> = ({ type, onFileSelect, isDarkMode 
           {pendingFiles.length === 0 ? (
             <>
               <p>Klicken oder Datei hierher ziehen</p>
-              <p className="text-xs mt-2">Maximale Dateigröße: 200MB</p>
+              <p className="text-xs mt-2">Maximale Dateigröße: {maxSize / (1024 * 1024)}MB</p>
+              {accept && <p className="text-xs">Erlaubte Formate: {accept}</p>}
             </>
           ) : (
             <div className="max-h-60 overflow-y-auto w-full">

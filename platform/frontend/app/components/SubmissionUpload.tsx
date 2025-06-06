@@ -1,34 +1,29 @@
 import React, { useState } from 'react';
 
-interface FileUploadProps {
-  type: 'dataset' | 'model' | 'xai';
+interface SubmissionUploadProps {
   onFileSelect: (file: File) => void;
   isDarkMode?: boolean;
+  isLoading?: boolean;
+  error?: string | null;
+  progress?: number;
 }
 
 const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB
 
-const FileUpload: React.FC<FileUploadProps> = ({ type, onFileSelect, isDarkMode = false }) => {
+const SubmissionUpload: React.FC<SubmissionUploadProps> = ({ 
+  onFileSelect, 
+  isDarkMode = false,
+  isLoading = false,
+  error = null,
+  progress = 0
+}) => {
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
-
-  const getTitle = () => {
-    switch (type) {
-      case 'dataset':
-        return 'Dataset';
-      case 'model':
-        return 'ML Model';
-      case 'xai':
-        return 'XAI Method Template';
-      default:
-        return '';
-    }
-  };
+  const [uploadClicked, setUploadClicked] = useState(false);
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(false);
-    
     const droppedFiles = Array.from(e.dataTransfer.files);
     const validFiles = droppedFiles.filter(file => {
       if (file.size > MAX_FILE_SIZE) {
@@ -37,10 +32,9 @@ const FileUpload: React.FC<FileUploadProps> = ({ type, onFileSelect, isDarkMode 
       }
       return true;
     });
-
     if (validFiles.length > 0) {
-      setPendingFiles(prev => [...prev, ...validFiles]);
-      validFiles.forEach(file => onFileSelect(file));
+      setPendingFiles(validFiles);
+      setUploadClicked(false);
     }
   };
 
@@ -54,26 +48,39 @@ const FileUpload: React.FC<FileUploadProps> = ({ type, onFileSelect, isDarkMode 
         }
         return true;
       });
-
       if (validFiles.length > 0) {
-        setPendingFiles(prev => [...prev, ...validFiles]);
-        validFiles.forEach(file => onFileSelect(file));
+        setPendingFiles(validFiles);
+        setUploadClicked(false);
       }
+    }
+  };
+
+  const handleRemove = (index: number) => {
+    setPendingFiles(prev => prev.filter((_, i) => i !== index));
+    setUploadClicked(false);
+  };
+
+  const handleUpload = () => {
+    if (pendingFiles.length > 0) {
+      setUploadClicked(true);
+      onFileSelect(pendingFiles[0]);
     }
   };
 
   return (
     <div
       className={`
-        ${pendingFiles.length > 0 ? 'h-80 w-[400px]' : 'h-40 w-[250px]'}
+        ${pendingFiles.length > 0 ? 'h-80' : 'h-40'}
+        w-full
         ${isDarkMode 
           ? 'bg-gray-800 border-gray-600 hover:bg-gray-700' 
           : 'bg-white border-gray-400 hover:bg-gray-50'
         }
         ${isDragging ? 'border-blue-500' : ''}
+        ${error ? 'border-red-500' : ''}
         border-2 border-dashed rounded-xl flex flex-col min-h-0 p-4 
         items-center justify-center text-center transition-all duration-300
-        cursor-pointer
+        cursor-pointer relative
       `}
       onDragOver={(e) => {
         e.preventDefault();
@@ -81,22 +88,21 @@ const FileUpload: React.FC<FileUploadProps> = ({ type, onFileSelect, isDarkMode 
       }}
       onDragLeave={() => setIsDragging(false)}
       onDrop={handleDrop}
-      onClick={() => document.getElementById(`file-upload-${type}`)?.click()}
+      onClick={() => document.getElementById('submission-upload')?.click()}
     >
       <input
-        id={`file-upload-${type}`}
+        id="submission-upload"
         type="file"
         className="hidden"
         onChange={handleFileSelect}
-        multiple
+        accept=".py"
       />
-      
       <div className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'} w-full`}>
-        <div className="text-lg font-medium mb-2">{getTitle()}</div>
+        <div className="text-lg font-medium mb-2">XAI Method Submission</div>
         <div className="text-sm w-full">
           {pendingFiles.length === 0 ? (
             <>
-              <p>Klicken oder Datei hierher ziehen</p>
+              <p>Klicken oder Python-Datei hierher ziehen</p>
               <p className="text-xs mt-2">Maximale Dateigröße: 200MB</p>
             </>
           ) : (
@@ -113,7 +119,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ type, onFileSelect, isDarkMode 
                     className="ml-2 text-red-500 hover:text-red-700 text-xs border border-red-300 rounded px-2 py-1 flex-shrink-0"
                     onClick={e => {
                       e.stopPropagation();
-                      setPendingFiles(prev => prev.filter((_, i) => i !== index));
+                      handleRemove(index);
                     }}
                     title="Entfernen"
                   >
@@ -121,12 +127,37 @@ const FileUpload: React.FC<FileUploadProps> = ({ type, onFileSelect, isDarkMode 
                   </button>
                 </div>
               ))}
+              <div className="flex justify-end mt-4">
+                <button
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded shadow disabled:opacity-50"
+                  onClick={e => {
+                    e.stopPropagation();
+                    handleUpload();
+                  }}
+                  disabled={pendingFiles.length === 0 || isLoading}
+                >
+                  Upload
+                </button>
+              </div>
             </div>
           )}
         </div>
       </div>
+      {isLoading && progress > 0 && (
+        <div className="absolute bottom-0 left-0 w-full h-1 bg-gray-200">
+          <div 
+            className="h-full bg-blue-500 transition-all duration-300"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      )}
+      {error && (
+        <div className="absolute bottom-2 left-2 right-2 bg-red-100 text-red-600 p-2 rounded text-sm">
+          {error}
+        </div>
+      )}
     </div>
   );
 };
 
-export default FileUpload; 
+export default SubmissionUpload; 
