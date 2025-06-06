@@ -31,12 +31,12 @@ services:
     ports:
       - 3000:3000
 
-  worker:
-    image: exact-worker
-    build:
-      context: ./worker
-    depends_on:
-      - backend
+  # worker:
+  #   image: exact-worker
+  #   build:
+  #     context: ./worker
+  #   depends_on:
+  #     - backend
 
   # Additional configuration for the worker service
 
