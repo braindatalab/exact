@@ -17,6 +17,7 @@ import {
   Progress,
   Table,
   Text,
+  TextInput,
 } from "@mantine/core";
 import { ChallengeData, Score } from "@/app/components/types";
 import { useClient, useUser } from "@/app/components/UserContext";
@@ -55,6 +56,7 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
     string | null
   >(null);
   const [scores, setScores] = useState<Array<Score>>([]);
+  const [methodName, setMethodName] = useState<string>("");
 
   const {
     data: scoreData,
@@ -100,6 +102,7 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
     formData.append("file", file);
     const username = user && user.username ? user.username : "anonymous";
     formData.append("username", username);
+    formData.append("method_name", methodName);
     client
       .post(`/api/xai/${challenge.id}/`, formData)
       .then((res) => {
@@ -206,24 +209,25 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
                   </Center>
                 ) : (
                   <Table
-                    data={{
-                      caption: "Your Contributions To This Challenge",
-                      head: ["Submitted at", "Link to file", "Score"],
-                      body: scores.reduce((t: Array<any>, s: Score) => {
-                        if (s.username !== user.username) {
-                          return t;
-                        }
-                        return [
-                          ...t,
-                          [
-                            s.createdAt.toISOString(),
-                            "coming soon...",
-                            s.score,
-                          ],
-                        ];
-                      }, []),
-                    }}
-                  />
+                  data={{
+                    caption: "Your Contributions To This Challenge",
+                    head: ["Submitted at", "Method", "Link to file", "Score"],
+                    body: scores.reduce((t: Array<any>, s: Score) => {
+                      if (s.username !== user.username) {
+                        return t;
+                      }
+                      return [
+                        ...t,
+                        [
+                          s.createdAt.toISOString(),
+                          s.methodName || "Unknown Method",
+                          "coming soon...",
+                          s.score,
+                        ],
+                      ];
+                    }, []),
+                  }}
+                />                     
                 )
               ) : (
                 <Text>You are not logged in...</Text>
@@ -331,85 +335,21 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
                 >
                   <thead style={{ backgroundColor: "#f5f5f5" }}>
                     <tr>
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: "8px",
-                          borderBottom: "1px solid #e0e0e0",
-                          borderRight: "1px solid #e0e0e0",
-                        }}
-                      >
-                        Rank
-                      </th>
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: "8px",
-                          borderBottom: "1px solid #e0e0e0",
-                          borderRight: "1px solid #e0e0e0",
-                        }}
-                      >
-                        User
-                      </th>
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: "8px",
-                          borderBottom: "1px solid #e0e0e0",
-                        }}
-                      >
-                        Score
-                      </th>
+                      <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #e0e0e0", borderRight: "1px solid #e0e0e0" }}>Rank</th>
+                      <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #e0e0e0", borderRight: "1px solid #e0e0e0" }}>User</th>
+                      <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #e0e0e0", borderRight: "1px solid #e0e0e0" }}>Method</th>
+                      <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #e0e0e0" }}>Score</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {scores
-                      .sort((a, b) => a.score - b.score)
-                      .map((s, index) => (
-                        <tr
-                          key={index}
-                          style={{ borderTop: "1px solid #e0e0e0" }}
-                        >
-                          <td
-                            style={{
-                              padding: "8px",
-                              borderRight: "1px solid #e0e0e0",
-                            }}
-                          >
-                            {index + 1}
-                          </td>
-                          <td
-                            style={{
-                              padding: "8px",
-                              borderRight: "1px solid #e0e0e0",
-                            }}
-                          >
-                            {s.username}
-                          </td>
-                          <td style={{ padding: "8px" }}>{s.score}</td>
-                        </tr>
-                      ))}
-                    {/* {LEADERBOARD_MOCK_DATA.ranking.map((entry, index) => (
-                    <tr key={index} style={{ borderTop: "1px solid #e0e0e0" }}>
-                      <td
-                        style={{
-                          padding: "8px",
-                          borderRight: "1px solid #e0e0e0",
-                        }}
-                      >
-                        {index + 1}
-                      </td>
-                      <td
-                        style={{
-                          padding: "8px",
-                          borderRight: "1px solid #e0e0e0",
-                        }}
-                      >
-                        {entry.user}
-                      </td>
-                      <td style={{ padding: "8px" }}>{entry.score}</td>
-                    </tr>
-                  ))} */}
+                    {scores.sort((a, b) => a.score - b.score).map((s, index) => (
+                      <tr key={index} style={{ borderTop: "1px solid #e0e0e0" }}>
+                        <td style={{ padding: "8px", borderRight: "1px solid #e0e0e0" }}>{index + 1}</td>
+                        <td style={{ padding: "8px", borderRight: "1px solid #e0e0e0" }}>{s.username}</td>
+                        <td style={{ padding: "8px", borderRight: "1px solid #e0e0e0" }}>{s.methodName || "Unknown Method"}</td>
+                        <td style={{ padding: "8px" }}>{s.score}</td>
+                      </tr>
+                    ))}
                   </tbody>
                 </Table>
               ) : (
@@ -427,10 +367,20 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
           setSubmissionUploadScore(null);
           setUploadSubmissionFile(null);
           setSubmissionUploadProgress(0);
+          setMethodName("");
         }}
         title="Upload Submission"
         centered
       >
+      <TextInput
+            label="Method Name"
+            placeholder="Enter your XAI method name"
+            value={methodName}
+            onChange={(event) => setMethodName(event.currentTarget.value)}
+            disabled={isLoadingUploadSubmission}
+            mb="sm"
+            required
+        />
         <FileInput
           accept=".py"
           label="Upload file with your XAI method"
@@ -446,7 +396,7 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
         />
         <Group justify="flex-end" mt="sm">
           <Button
-            disabled={isLoadingUploadSubmission || !uploadSubmissionFile}
+            disabled={isLoadingUploadSubmission || !uploadSubmissionFile || !methodName.trim()}
             onClick={() => {
               if (!uploadSubmissionFile) {
                 return;

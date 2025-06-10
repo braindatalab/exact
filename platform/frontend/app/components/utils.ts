@@ -132,6 +132,7 @@ export const convertScore = (score: any) => {
     challengeId: score["challenge_id"],
     username: score["username"],
     createdAt: new Date(score["created_at"]),
+    methodName: score["method_name"] ,
   };
 };
 

@@ -27,4 +27,5 @@ export interface Score {
   username: string;
   challengeId: string;
   createdAt: Date;
+  methodName?:string;
 }

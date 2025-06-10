@@ -26,9 +26,12 @@ def xai_detail(request, challenge_id):
     form = ScoreForm(request.POST, request.FILES)
     input_file = None
     username = None
+    method_name = None  # NEU HINZUGEFÜGT
+    
     if form.is_valid():
         input_file = form.cleaned_data['file']
         username = form.cleaned_data['username']
+        method_name = form.cleaned_data.get('method_name', '')  # NEU HINZUGEFÜGT
 
     if input_file is None or username is None:
         return Response({'error': f'error getting the input file'}, status=status.HTTP_400_BAD_REQUEST)
@@ -40,16 +43,21 @@ def xai_detail(request, challenge_id):
 
     # Return message in response when something went wrong while computing the score
     if (score == None):
-        return Response({'message': message, score: None}, status=status.HTTP_200_OK)
+        return Response({'message': message, 'score': None}, status=status.HTTP_200_OK)
 
-    # Store score in the database
-    serializer = ScoreSerializer(data={'score': score, 'challenge_id': challenge_id, 'username': username})
+    # Store score in the database - MIT METHOD_NAME
+    serializer = ScoreSerializer(data={
+        'score': score, 
+        'challenge_id': challenge_id, 
+        'username': username,
+        'method_name': method_name  # NEU HINZUGEFÜGT
+    })
+    
     if serializer.is_valid():
         serializer.save()
         return Response({'message': message, 'score': serializer.data}, status=status.HTTP_201_CREATED)
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 @api_view(['GET', 'POST'])
 def score_detail(request, challenge_id):

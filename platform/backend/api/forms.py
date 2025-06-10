@@ -19,3 +19,4 @@ class ChallengeForm(forms.Form):
 class ScoreForm(forms.Form):
     file = forms.FileField()
     username= forms.CharField(max_length=100)
+    method_name = forms.CharField(max_length=100, required=False)  
