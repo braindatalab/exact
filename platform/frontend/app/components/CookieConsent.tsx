@@ -1,13 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Paper, Text, Group, Button, Box } from '@mantine/core';
 import { Storage } from '../utils/storage';
 
 export function CookieConsent() {
-  const [showBanner, setShowBanner] = useState(true); // Start with true to ensure initial visibility
+  const [showBanner, setShowBanner] = useState(false);
+  const effectRan = useRef(false);
 
   useEffect(() => {
+    if (effectRan.current) return;
+
     // Check if user has already made a choice
     const consent = Storage.getCookie('cookieConsent');
     console.log('Current cookie consent status:', consent);
@@ -20,16 +23,16 @@ export function CookieConsent() {
       console.log('Showing banner - no consent choice found');
       setShowBanner(true);
     }
+
+    effectRan.current = true;
   }, []);
 
   const handleAccept = () => {
-    console.log('Cookies accepted');
     Storage.setCookie('cookieConsent', 'accepted', { expires: 365 }); // Valid for 1 year
     setShowBanner(false);
   };
 
   const handleDecline = () => {
-    console.log('Cookies declined');
     Storage.setCookie('cookieConsent', 'declined', { expires: 1 }); // Only valid for 1 day
     setShowBanner(false);
     // Clear any existing cookies except the consent one
@@ -48,7 +51,7 @@ export function CookieConsent() {
         bottom: 0,
         left: 0,
         right: 0,
-        zIndex: 9999, // Ensure it's above everything
+        zIndex: 9999,
         padding: '1rem',
       }}
     >
