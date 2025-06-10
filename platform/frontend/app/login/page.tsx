@@ -22,12 +22,14 @@ import { AuthenticationOption } from "../components/types";
 import { useRouter } from "next/navigation";
 import { useUser, useUserUpdate } from "../components/UserContext";
 import { useClient } from "../components/UserContext";
+import { useSession } from "../contexts/SessionContext";
 
 const Login = () => {
   const router = useRouter();
   const client = useClient();
   const user = useUser();
   const updateUser = useUserUpdate();
+  const { setSession } = useSession();
 
   const [selectedAuthenticationOption, setSelectedAuthenticationOption] =
     useState<AuthenticationOption | null>(null);
@@ -47,13 +49,15 @@ const Login = () => {
         password,
       })
       .then(({ data }) => {
-        const { password, ...userData } = data;
-        console.log(data);
+        const { password: _, ...userData } = data;
+        console.log('Login successful:', userData);
         updateUser(userData);
+        setSession(userData);
         setIsLoadingLogin(false);
         router.push("/");
       })
       .catch((e) => {
+        console.error('Login error:', e);
         setIsLoadingLogin(false);
         setAuthenticationError(
           "The username or password provided is incorrect."

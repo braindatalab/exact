@@ -1,15 +1,10 @@
-'use client';
-
 import React from "react";
-import { ColorSchemeScript, MantineProvider } from "@mantine/core";
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
+import { ColorSchemeScript } from "@mantine/core";
 import "@mantine/core/styles.css";
-import Header from "./components/Header";
-import Footer from "./components/Footer";
-import { UserProvider } from "./components/UserContext";
-import { SessionProvider } from './contexts/SessionContext';
+import "./globals.css";
+import { Inter } from "next/font/google";
+import type { Metadata } from "next";
+import ClientWrapper from './components/ClientWrapper';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -29,17 +24,9 @@ export default function RootLayout({
         <ColorSchemeScript />
       </head>
       <body className={inter.className}>
-        <SessionProvider>
-          <MantineProvider theme={{ primaryColor: "blue" }}>
-            <UserProvider>
-              <div className="flex flex-col min-h-screen">
-                <Header />
-                {children}
-                <Footer />
-              </div>
-            </UserProvider>
-          </MantineProvider>
-        </SessionProvider>
+        <ClientWrapper>
+          {children}
+        </ClientWrapper>
       </body>
     </html>
   );
