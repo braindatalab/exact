@@ -25,27 +25,33 @@ services:
       - .env
 
   frontend:
-    image: exact-frontend
     build:
       context: ./platform/frontend
+    volumes:
+      - ./platform/frontend:/app
+      - /app/node_modules  # verhindert Konflikte mit lokalen node_modules
     ports:
       - 3000:3000
+    working_dir: /app
+    command: npm run dev
+    environment:
+      - CHOKIDAR_USEPOLLING=true  # nötig für zuverlässiges Dateiwatching im Container
 
-  worker:
-    image: exact-worker
-    build:
-      context: ./worker
-    depends_on:
-      - backend
+  # worker:
+  #   image: exact-worker
+  #   build:
+  #     context: ./worker
+  #   depends_on:
+  #     - backend
 
   # Additional configuration for the worker service
 
   # The commented out section below is an example of how to define a PostgreSQL
-  # database that your application can use. `depends_on` tells Docker Compose to
-  # start the database before your application. The `db-data` volume persists the
-  # database data between container restarts. The `db-password` secret is used
-  # to set the database password. You must create `db/password.txt` and add
-  # a password of your choosing to it before running `docker compose up`.
+  # database that your application can use. depends_on tells Docker Compose to
+  # start the database before your application. The db-data volume persists the
+  # database data between container restarts. The db-password secret is used
+  # to set the database password. You must create db/password.txt and add
+  # a password of your choosing to it before running docker compose up.
 
   db:
     image: postgres
@@ -65,6 +71,15 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  devcontainer:
+    image: mcr.microsoft.com/devcontainers/base:ubuntu
+    volumes:
+      - .:/workspaces/exact
+    working_dir: /workspaces/exact
+    command: sleep infinity
+    user: root
+
 volumes:
   db-data:
 secrets:

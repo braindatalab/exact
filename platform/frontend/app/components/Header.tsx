@@ -16,6 +16,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NO_HEADER_PAGES } from "./utils";
 import { useClient, useUser, useUserUpdate } from "./UserContext";
+import { useSession } from "../contexts/SessionContext";
 import {
   IconLogout,
   IconMessageCircle,
@@ -31,6 +32,7 @@ const Header = () => {
   const user = useUser();
   const updateUser = useUserUpdate();
   const client = useClient();
+  const { clearSession } = useSession();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -43,6 +45,11 @@ const Header = () => {
   const handleLogout = () => {
     client.post("/logout", user).then(() => {
       updateUser(null);
+      clearSession();
+    }).catch((error) => {
+      console.error('Logout error:', error);
+      updateUser(null);
+      clearSession();
     });
   };
 
