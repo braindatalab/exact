@@ -1,471 +1,255 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState, useRef, ChangeEvent } from "react";
 import {
-  Alert,
-  AspectRatio,
   Button,
   Center,
-  Divider,
-  FileInput,
-  Grid,
+  Container,
   Group,
-  Image,
-  Loader,
-  Modal,
-  Overlay,
   Paper,
-  Progress,
-  Table,
   Text,
+  TextInput,
+  Textarea,
+  Title,
+  Alert,
+  Box,
 } from "@mantine/core";
-import { ChallengeData, Score } from "@/app/components/types";
 import { useClient, useUser } from "@/app/components/UserContext";
-import { notFound } from "next/navigation";
-import {
-  IconDataset,
-  IconModel,
-  IconTemplate,
-  convertChallengeData,
-  LEADERBOARD_MOCK_DATA,
-  convertScore,
-  fetcher,
-  BASE_URL_API,
-} from "@/app/components/utils";
-import { AxiosError } from "axios";
-import { IconInfoCircle } from "@tabler/icons-react";
-import useSWR from "swr";
-import SubmissionUpload from "@/app/components/SubmissionUpload";
-import { useMantineColorScheme } from "@mantine/core";
+import { useRouter } from "next/navigation";
+import { IconUpload, IconAlertCircle, IconFile, IconX } from "@tabler/icons-react";
 
-const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
+const CreateChallenge = () => {
   const client = useClient();
   const user = useUser();
-  const { colorScheme } = useMantineColorScheme();
-  const isDark = colorScheme === 'dark';
-  const [challenge, setChallenge] = useState<ChallengeData | null>(null);
-  const [error, setError] = useState<AxiosError | null>(null);
-  const [isUploadSubmissionModalOpen, setIsUploadSubmissionModalOpen] =
-    useState(false);
-  const [isLoadingUploadSubmission, setIsLoadingUploadSubmission] =
-    useState(false);
-  const [uploadSubmissionFile, setUploadSubmissionFile] = useState<File | null>(
-    null
-  );
-  const [submissionUploadProgress, setSubmissionUploadProgress] =
-    useState<number>(0);
-  const [submissionUploadScore, setSubmissionUploadScore] =
-    useState<Score | null>(null);
-  const [submissionUploadError, setSubmissionUploadError] = useState<
-    string | null
-  >(null);
-  const [scores, setScores] = useState<Array<Score>>([]);
+  const router = useRouter();
 
-  const {
-    data: scoreData,
-    error: errorLoadingScoreData,
-    isLoading: isLoadingScoreData,
-  } = useSWR(`${BASE_URL_API}/api/scores`, fetcher);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [dataset, setDataset] = useState<File | null>(null);
+  const [mlmodel, setMlmodel] = useState<File | null>(null);
+  const [xaiMethod, setXaiMethod] = useState<File | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Create refs for each file input
+  const datasetInputRef = useRef<HTMLInputElement | null>(null);
+  const mlmodelInputRef = useRef<HTMLInputElement | null>(null);
+  const xaiMethodInputRef = useRef<HTMLInputElement | null>(null);
 
-  useEffect(() => {
-    if (!scoreData) {
-      return;
-    }
-    const convertedScores = scoreData.map((s: any) => convertScore(s));
-    const filteredScores = convertedScores.filter(
-      (s: Score) => s.challengeId === params.challengeId
-    );
-    setScores(filteredScores);
-  }, [scoreData, params.challengeId]);
-
-  useEffect(() => {
-    client
-      .get(`/api/challenge/${params.challengeId}`)
-      .then(({ data }) => {
-        setChallenge(convertChallengeData(data));
-      })
-      .catch((e) => {
-        setError(e);
+  // Custom file change handler
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>, setter: React.Dispatch<React.SetStateAction<File | null>>) => {
+    const files = event.target.files;
+    console.log("File selection event:", event);
+    console.log("Selected files:", files);
+    
+    if (files && files.length > 0) {
+      console.log("Selected file details:", {
+        name: files[0].name,
+        type: files[0].type,
+        size: files[0].size
       });
-  }, [client, params.challengeId]);
-
-  React.useEffect(() => {
-    if (!isLoadingUploadSubmission && uploadSubmissionFile && submissionUploadProgress === 100 && !submissionUploadError) {
-      setTimeout(() => {
-        setIsUploadSubmissionModalOpen(false);
-        setUploadSubmissionFile(null);
-        setSubmissionUploadProgress(0);
-        setSubmissionUploadScore(null);
-        setSubmissionUploadError(null);
-      }, 1000); // 1 Sekunde nach Abschluss schließen
+      setter(files[0]);
     }
-  }, [isLoadingUploadSubmission, uploadSubmissionFile, submissionUploadProgress, submissionUploadError]);
-
-  if (error && error.response && error.response.status === 404) {
-    notFound();
-  }
-
-  const addSubmission = (file: File) => {
-    if (!challenge) {
-      return;
-    }
-    setSubmissionUploadError(null);
-    setSubmissionUploadScore(null);
-    setSubmissionUploadProgress(90);
-    setIsLoadingUploadSubmission(true);
-    const formData = new FormData();
-    formData.append("file", file);
-    const username = user && user.username ? user.username : "anonymous";
-    formData.append("username", username);
-    client
-      .post(`/api/xai/${challenge.id}/`, formData)
-      .then((res) => {
-        const { message, score }: { message: string; score: any } = res.data;
-        if (score) {
-          setSubmissionUploadScore(convertScore(score));
-        }
-        if (message.toLowerCase() !== "success") {
-          setSubmissionUploadError(message);
-        }
-        setSubmissionUploadProgress(100);
-        setIsLoadingUploadSubmission(false);
-      })
-      .catch((e: AxiosError) => {
-        setSubmissionUploadProgress(100);
-        setIsLoadingUploadSubmission(false);
-        setSubmissionUploadError(e.message === undefined ? null : e.message);
-      });
   };
 
-  const determineSubmissionEvaluationStatus = () => {
-    if (!submissionUploadScore && !submissionUploadError) {
-      if (uploadSubmissionFile) {
-        if (isLoadingUploadSubmission) {
-          return "Loading";
-        }
-        return "File selected";
-      }
-      return "No file selected";
-    } else {
-      if (submissionUploadError) {
-        return "Error";
-      } else {
-        return "Success";
-      }
+  // Clear file input
+  const clearFileInput = (inputRef: React.RefObject<HTMLInputElement>, setter: React.Dispatch<React.SetStateAction<File | null>>) => {
+    if (inputRef.current) {
+      inputRef.current.value = '';
     }
+    setter(null);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
+    if (!title || !dataset || !mlmodel || !xaiMethod) {
+      setError("Please fill in all required fields");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("description", description);
+      formData.append("dataset", dataset);
+      formData.append("mlmodel", mlmodel);
+      formData.append("xai_method", xaiMethod);
+      
+      // Add creator if user is authenticated
+      if (user && user.username) {
+        formData.append("creator", user.username);
+      }
+
+      const response = await client.post("/api/challenge/create/", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (response.status === 201) {
+        router.push("/competitions");
+      }
+    } catch (err: any) {
+      setError(err.message || "Failed to create challenge. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Custom file input component
+  const CustomFileInput = ({ 
+    label, 
+    description, 
+    inputRef, 
+    value, 
+    onChange, 
+    onClear,
+    accept = "*/*" 
+  }: { 
+    label: string; 
+    description: string; 
+    inputRef: React.RefObject<HTMLInputElement>; 
+    value: File | null; 
+    onChange: (e: ChangeEvent<HTMLInputElement>) => void;
+    onClear: () => void;
+    accept?: string;
+  }) => {
+    return (
+      <Box mb="md">
+        <Text fw={500} mb={5}>
+          {label} <span style={{ color: 'red' }}>*</span>
+        </Text>
+        <Text size="sm" c="dimmed" mb={5}>
+          {description}
+        </Text>
+        <Box 
+          style={{ 
+            border: '1px solid #dee2e6', 
+            borderRadius: '4px', 
+            padding: '8px 12px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            cursor: 'pointer',
+            backgroundColor: 'white'
+          }}
+          onClick={() => inputRef.current?.click()}
+        >
+          <Text color={value ? 'black' : 'dimmed'}>
+            {value ? value.name : "Klicken Sie hier, um eine Datei auszuwählen"}
+          </Text>
+          <Group gap="xs">
+            {value && (
+              <IconX 
+                size={16} 
+                style={{ cursor: 'pointer' }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClear();
+                }}
+              />
+            )}
+            <IconFile size={16} />
+          </Group>
+        </Box>
+        <input
+          type="file"
+          ref={inputRef}
+          onChange={onChange}
+          style={{ display: 'none' }}
+          accept={accept}
+        />
+      </Box>
+    );
   };
 
   return (
     <main className="flex flex-1 flex-col bg-gray-300">
-      {challenge === null ? (
-        <Center mt="xl">
-          <Loader />
-        </Center>
-      ) : (
-        <Grid w="100%" px={100} py="lg" gutter="lg">
-          <Grid.Col span={{ base: 12, lg: 8 }}>
-            <Paper p="0" shadow="md" style={{ overflow: "hidden" }}>
-              <AspectRatio ratio={4 / 2} pos="relative">
-                <Image src={challenge.thumbnail} alt="Demo" />
-                <Overlay
-                  gradient="linear-gradient(
-    to bottom,
-    hsla(0, 0%, 100%, 0) 0%,
-    hsla(0, 0%, 100%, 0.013) 13.5%,
-    hsla(0, 0%, 100%, 0.049) 25.2%,
-    hsla(0, 0%, 100%, 0.104) 35.4%,
-    hsla(0, 0%, 100%, 0.175) 44.1%,
-    hsla(0, 0%, 100%, 0.259) 51.7%,
-    hsla(0, 0%, 100%, 0.352) 58.2%,
-    hsla(0, 0%, 100%, 0.45) 63.9%,
-    hsla(0, 0%, 100%, 0.55) 68.9%,
-    hsla(0, 0%, 100%, 0.648) 73.4%,
-    hsla(0, 0%, 100%, 0.741) 77.6%,
-    hsla(0, 0%, 100%, 0.825) 81.7%,
-    hsla(0, 0%, 100%, 0.896) 85.8%,
-    hsla(0, 0%, 100%, 0.951) 90.1%,
-    hsla(0, 0%, 100%, 0.987) 94.7%,
-    hsl(0, 0%, 100%) 100%
-  )" // gradient easing done with https://larsenwork.com/easing-gradients/
-                  opacity={1}
-                />
-                <div
-                  style={{
-                    position: "absolute",
-                    top: "100%",
-                    transform: "translateY(-30px)",
-                    zIndex: 200,
-                    textAlign: "center",
-                  }}
-                >
-                  <Text
-                    size="30px"
-                    fw="900"
-                    tt="uppercase"
-                    variant="gradient"
-                    gradient={{ from: "blue", to: "cyan", deg: 90 }}
-                  >
-                    {challenge.title}
-                  </Text>
-                </div>
-              </AspectRatio>
-              <Text m="md">{challenge.description}</Text>
-            </Paper>
-            <Paper shadow="md" p="sm" mt="lg">
-              <Text size="xl" fw="600" ta="center">
-                Your Submissions
-              </Text>
-              <Divider my="sm" />
-              {user ? (
-                isLoadingScoreData && scores.length === 0 ? (
-                  <Center>
-                    <Loader type="dots" />
-                  </Center>
-                ) : (
-                  <Table
-                    data={{
-                      caption: "Your Contributions To This Challenge",
-                      head: ["Submitted at", "Link to file", "Score"],
-                      body: scores.reduce((t: Array<any>, s: Score) => {
-                        if (s.username !== user.username) {
-                          return t;
-                        }
-                        return [
-                          ...t,
-                          [
-                            s.createdAt.toISOString(),
-                            "coming soon...",
-                            s.score,
-                          ],
-                        ];
-                      }, []),
-                    }}
-                  />
-                )
-              ) : (
-                <Text>You are not logged in...</Text>
-              )}
-              <Group justify="center" mt="md">
-                <Button
-                  variant="gradient"
-                  gradient={{ from: "blue", to: "cyan", deg: 90 }}
-                  onClick={() => setIsUploadSubmissionModalOpen(true)}
-                >
-                  Add Submission
-                </Button>
-              </Group>
-            </Paper>
-          </Grid.Col>
-          <Grid.Col span={{ base: 12, lg: 4 }}>
-            <Paper shadow="md" p="sm">
-              <Text size="xl" fw="600" ta="center">
-                Metadata
-              </Text>
-              <Divider mb="sm" />
-              <Group justify="space-between">
-                <Text>Created by</Text>
-                <Text>
-                  {challenge.creator ? challenge.creator : "creator unknown"}
-                </Text>
-              </Group>
-              <Group justify="space-between">
-                <Text>Created at</Text>
-                <Text>{challenge.createdAt.toISOString()}</Text>
-              </Group>
-              <Group justify="space-between">
-                <Text>Closes on</Text>
-                <Text>
-                  {challenge.deadline ? challenge.deadline.toISOString() : "-"}
-                </Text>
-              </Group>
-              <Group justify="space-between">
-                <Text>Number Participants</Text>
-                <Text>
-                  {challenge.participants
-                    ? challenge.participants
-                    : "number partipants unknown"}
-                </Text>
-              </Group>
-              <Group justify="space-between">
-                <Text>Challenge ID</Text>
-                <Text>{challenge.id}</Text>
-              </Group>
-            </Paper>
-            <Paper shadow="md" mt="lg" p="sm">
-              <Text size="xl" fw="600" ta="center">
-                Resources
-              </Text>
-              <Divider mb="sm" />
+      <Container size="md" py="xl">
+        <Paper shadow="md" p="xl" radius="md">
+          <Title order={2} ta="center" mb="md">
+            Create New Challenge
+          </Title>
+
+          {error && (
+            <Alert 
+              icon={<IconAlertCircle size={16} />} 
+              title="Error" 
+              color="red" 
+              mb="md"
+            >
+              {error}
+            </Alert>
+          )}
+
+          <form onSubmit={handleSubmit}>
+            <TextInput
+              label="Title"
+              placeholder="Challenge Title"
+              required
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              mb="md"
+            />
+
+            <Textarea
+              label="Description"
+              placeholder="Describe your challenge"
+              minRows={3}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              mb="md"
+            />
+
+            <CustomFileInput
+              label="Dataset"
+              description="Unterstützte Formate: CSV, TXT, JSON, PKL und andere Datendateien"
+              inputRef={datasetInputRef}
+              value={dataset}
+              onChange={(e) => handleFileChange(e, setDataset)}
+              onClear={() => clearFileInput(datasetInputRef, setDataset)}
+              accept=".csv,.txt,.json,.pkl,application/octet-stream,application/x-pickle,application/pickle"
+            />
+
+            <CustomFileInput
+              label="ML Model"
+              description="Unterstützte Formate: H5, PKL, PT, ONNX, PB und andere Modelldateien"
+              inputRef={mlmodelInputRef}
+              value={mlmodel}
+              onChange={(e) => handleFileChange(e, setMlmodel)}
+              onClear={() => clearFileInput(mlmodelInputRef, setMlmodel)}
+              accept=".h5,.pkl,.pt,.onnx,.pb,application/octet-stream,application/x-pickle,application/pickle"
+            />
+
+            <CustomFileInput
+              label="XAI Method"
+              description="Unterstützte Formate: PY, IPYNB, TXT und andere Skriptdateien"
+              inputRef={xaiMethodInputRef}
+              value={xaiMethod}
+              onChange={(e) => handleFileChange(e, setXaiMethod)}
+              onClear={() => clearFileInput(xaiMethodInputRef, setXaiMethod)}
+              accept=".py,.ipynb,.txt,text/plain,text/python,application/x-python"
+            />
+
+            <Group justify="center" mt="lg">
               <Button
-                rightSection={<IconDataset size={16} />}
-                fullWidth
-                variant="light"
-                component="a"
-                href={`http://localhost:8000/api/dataset/${challenge.id}`}
+                type="submit"
+                size="md"
+                variant="gradient"
+                gradient={{ from: "blue", to: "cyan", deg: 90 }}
+                loading={isLoading}
               >
-                Download Dataset
+                Create Challenge
               </Button>
-              <Button
-                rightSection={<IconTemplate size={16} />}
-                mt="xs"
-                fullWidth
-                variant="light"
-                component="a"
-                href={`http://localhost:8000/api/xaimethod/${challenge.id}`}
-              >
-                Download XAI Method Template
-              </Button>
-              <Button
-                rightSection={<IconModel size={16} />}
-                mt="xs"
-                fullWidth
-                variant="light"
-                component="a"
-                href={`http://localhost:8000/api/mlmodel/${challenge.id}`}
-              >
-                Download ML Model
-              </Button>
-            </Paper>
-            <Paper shadow="md" mt="lg" p="sm">
-              <Text size="xl" fw="600" ta="center">
-                Leaderboard
-              </Text>
-              <Divider mb="sm" />
-              {isLoadingScoreData && scores.length === 0 ? (
-                <Center>
-                  <Loader type="dots" />
-                </Center>
-              ) : scores.length > 0 ? (
-                <Table
-                  style={{
-                    width: "100%",
-                    borderCollapse: "separate",
-                    borderSpacing: "0",
-                    border: "1px solid #e0e0e0",
-                    borderRadius: "8px",
-                    overflow: "hidden",
-                  }}
-                >
-                  <thead style={{ backgroundColor: "#f5f5f5" }}>
-                    <tr>
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: "8px",
-                          borderBottom: "1px solid #e0e0e0",
-                          borderRight: "1px solid #e0e0e0",
-                        }}
-                      >
-                        Rank
-                      </th>
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: "8px",
-                          borderBottom: "1px solid #e0e0e0",
-                          borderRight: "1px solid #e0e0e0",
-                        }}
-                      >
-                        User
-                      </th>
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: "8px",
-                          borderBottom: "1px solid #e0e0e0",
-                        }}
-                      >
-                        Score
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {scores
-                      .sort((a, b) => a.score - b.score)
-                      .map((s, index) => (
-                        <tr
-                          key={index}
-                          style={{ borderTop: "1px solid #e0e0e0" }}
-                        >
-                          <td
-                            style={{
-                              padding: "8px",
-                              borderRight: "1px solid #e0e0e0",
-                            }}
-                          >
-                            {index + 1}
-                          </td>
-                          <td
-                            style={{
-                              padding: "8px",
-                              borderRight: "1px solid #e0e0e0",
-                            }}
-                          >
-                            {s.username}
-                          </td>
-                          <td style={{ padding: "8px" }}>{s.score}</td>
-                        </tr>
-                      ))}
-                    {/* {LEADERBOARD_MOCK_DATA.ranking.map((entry, index) => (
-                    <tr key={index} style={{ borderTop: "1px solid #e0e0e0" }}>
-                      <td
-                        style={{
-                          padding: "8px",
-                          borderRight: "1px solid #e0e0e0",
-                        }}
-                      >
-                        {index + 1}
-                      </td>
-                      <td
-                        style={{
-                          padding: "8px",
-                          borderRight: "1px solid #e0e0e0",
-                        }}
-                      >
-                        {entry.user}
-                      </td>
-                      <td style={{ padding: "8px" }}>{entry.score}</td>
-                    </tr>
-                  ))} */}
-                  </tbody>
-                </Table>
-              ) : (
-                <Text>No submissions yet...</Text>
-              )}
-            </Paper>
-          </Grid.Col>
-        </Grid>
-      )}
-      <Modal
-        opened={isUploadSubmissionModalOpen}
-        onClose={() => {
-          setIsUploadSubmissionModalOpen(false);
-          setUploadSubmissionFile(null);
-          setSubmissionUploadProgress(0);
-          setSubmissionUploadScore(null);
-          setSubmissionUploadError(null);
-        }}
-        title="Upload Submission"
-        size="lg"
-      >
-        <SubmissionUpload
-          onFileSelect={(file) => {
-            setUploadSubmissionFile(file);
-            addSubmission(file);
-          }}
-          isDarkMode={isDark}
-          isLoading={isLoadingUploadSubmission}
-          error={submissionUploadError}
-          progress={submissionUploadProgress}
-        />
-        {isLoadingUploadSubmission && (
-          <div className="flex justify-center items-center mt-4">
-            <Loader type="dots" />
-            <span className="ml-2">Upload läuft...</span>
-          </div>
-        )}
-      </Modal>
+            </Group>
+          </form>
+        </Paper>
+      </Container>
     </main>
   );
 };
 
-export default ChallengeDetail;
+export default CreateChallenge;

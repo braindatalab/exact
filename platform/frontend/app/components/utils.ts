@@ -135,4 +135,14 @@ export const convertScore = (score: any) => {
   };
 };
 
-export const fetcher = (...args) => fetch(...args).then((res) => res.json());
+export const fetcher = (...args: Parameters<typeof fetch>) => fetch(...args).then((res) => res.json());
+
+export const formatDateGerman = (date: Date): string => {
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear();
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  
+  return `${day}.${month}.${year} ${hours}:${minutes} Uhr`;
+};
