@@ -35,14 +35,17 @@ import {
 import { AxiosError } from "axios";
 import { IconInfoCircle } from "@tabler/icons-react";
 import useSWR from "swr";
-import SubmissionUpload from "@/app/components/SubmissionUpload";
-import { useMantineColorScheme } from "@mantine/core";
+
+const DUMMY_LEADERBOARD = [
+  { username: "Alice", score: 42 },
+  { username: "Bob", score: 17 },
+  { username: "Charlie", score: 33 },
+  { username: "Diana", score: 25 },
+];
 
 const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
   const client = useClient();
   const user = useUser();
-  const { colorScheme } = useMantineColorScheme();
-  const isDark = colorScheme === 'dark';
   const [challenge, setChallenge] = useState<ChallengeData | null>(null);
   const [error, setError] = useState<AxiosError | null>(null);
   const [isUploadSubmissionModalOpen, setIsUploadSubmissionModalOpen] =
@@ -60,6 +63,7 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
     string | null
   >(null);
   const [scores, setScores] = useState<Array<Score>>([]);
+  const [sortAsc, setSortAsc] = useState(true);
 
   const {
     data: scoreData,
@@ -88,18 +92,6 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
         setError(e);
       });
   }, [client, params.challengeId]);
-
-  React.useEffect(() => {
-    if (!isLoadingUploadSubmission && uploadSubmissionFile && submissionUploadProgress === 100 && !submissionUploadError) {
-      setTimeout(() => {
-        setIsUploadSubmissionModalOpen(false);
-        setUploadSubmissionFile(null);
-        setSubmissionUploadProgress(0);
-        setSubmissionUploadScore(null);
-        setSubmissionUploadError(null);
-      }, 1000); // 1 Sekunde nach Abschluss schließen
-    }
-  }, [isLoadingUploadSubmission, uploadSubmissionFile, submissionUploadProgress, submissionUploadError]);
 
   if (error && error.response && error.response.status === 404) {
     notFound();
@@ -154,6 +146,15 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
       }
     }
   };
+
+  const leaderboardData =
+    scores.length > 0
+      ? scores.map((s) => ({ username: s.username, score: s.score }))
+      : DUMMY_LEADERBOARD;
+
+  const sortedLeaderboard = [...leaderboardData].sort((a, b) =>
+    sortAsc ? a.score - b.score : b.score - a.score
+  );
 
   return (
     <main className="flex flex-1 flex-col bg-gray-300">
@@ -215,7 +216,7 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
               <Text size="xl" fw="600" ta="center">
                 Your Submissions
               </Text>
-              <Divider my="sm" />
+              <Divider mb="sm" />
               {user ? (
                 isLoadingScoreData && scores.length === 0 ? (
                   <Center>
@@ -245,11 +246,11 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
               ) : (
                 <Text>You are not logged in...</Text>
               )}
-              <Group justify="center" mt="md">
+              <Group justify="flex-end">
                 <Button
-                  variant="gradient"
-                  gradient={{ from: "blue", to: "cyan", deg: 90 }}
-                  onClick={() => setIsUploadSubmissionModalOpen(true)}
+                  onClick={() => {
+                    setIsUploadSubmissionModalOpen(true);
+                  }}
                 >
                   Add Submission
                 </Button>
@@ -353,11 +354,21 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
                 Leaderboard
               </Text>
               <Divider mb="sm" />
+              <Button
+                size="xs"
+                mb="sm"
+                onClick={() => setSortAsc((prev) => !prev)}
+                style={{ marginBottom: 12 }}
+                fullWidth
+                variant="light"
+              >
+                Sort by Score: {sortAsc ? "Ascending" : "Descending"}
+              </Button>
               {isLoadingScoreData && scores.length === 0 ? (
                 <Center>
                   <Loader type="dots" />
                 </Center>
-              ) : scores.length > 0 ? (
+              ) : (
                 <Table
                   style={{
                     width: "100%",
@@ -370,89 +381,21 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
                 >
                   <thead style={{ backgroundColor: "#f5f5f5" }}>
                     <tr>
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: "8px",
-                          borderBottom: "1px solid #e0e0e0",
-                          borderRight: "1px solid #e0e0e0",
-                        }}
-                      >
-                        Rank
-                      </th>
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: "8px",
-                          borderBottom: "1px solid #e0e0e0",
-                          borderRight: "1px solid #e0e0e0",
-                        }}
-                      >
-                        User
-                      </th>
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: "8px",
-                          borderBottom: "1px solid #e0e0e0",
-                        }}
-                      >
-                        Score
-                      </th>
+                      <th style={{ textAlign: "left", padding: "8px" }}>Rank</th>
+                      <th style={{ textAlign: "left", padding: "8px" }}>User</th>
+                      <th style={{ textAlign: "left", padding: "8px" }}>Score</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {scores
-                      .sort((a, b) => a.score - b.score)
-                      .map((s, index) => (
-                        <tr
-                          key={index}
-                          style={{ borderTop: "1px solid #e0e0e0" }}
-                        >
-                          <td
-                            style={{
-                              padding: "8px",
-                              borderRight: "1px solid #e0e0e0",
-                            }}
-                          >
-                            {index + 1}
-                          </td>
-                          <td
-                            style={{
-                              padding: "8px",
-                              borderRight: "1px solid #e0e0e0",
-                            }}
-                          >
-                            {s.username}
-                          </td>
-                          <td style={{ padding: "8px" }}>{s.score}</td>
-                        </tr>
-                      ))}
-                    {/* {LEADERBOARD_MOCK_DATA.ranking.map((entry, index) => (
-                    <tr key={index} style={{ borderTop: "1px solid #e0e0e0" }}>
-                      <td
-                        style={{
-                          padding: "8px",
-                          borderRight: "1px solid #e0e0e0",
-                        }}
-                      >
-                        {index + 1}
-                      </td>
-                      <td
-                        style={{
-                          padding: "8px",
-                          borderRight: "1px solid #e0e0e0",
-                        }}
-                      >
-                        {entry.user}
-                      </td>
-                      <td style={{ padding: "8px" }}>{entry.score}</td>
-                    </tr>
-                  ))} */}
+                    {sortedLeaderboard.map((entry, index) => (
+                      <tr key={index}>
+                        <td style={{ padding: "8px" }}>{index + 1}</td>
+                        <td style={{ padding: "8px" }}>{entry.username}</td>
+                        <td style={{ padding: "8px" }}>{entry.score}</td>
+                      </tr>
+                    ))}
                   </tbody>
                 </Table>
-              ) : (
-                <Text>No submissions yet...</Text>
               )}
             </Paper>
           </Grid.Col>
@@ -462,29 +405,82 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
         opened={isUploadSubmissionModalOpen}
         onClose={() => {
           setIsUploadSubmissionModalOpen(false);
+          setSubmissionUploadError(null);
+          setSubmissionUploadScore(null);
           setUploadSubmissionFile(null);
           setSubmissionUploadProgress(0);
-          setSubmissionUploadScore(null);
-          setSubmissionUploadError(null);
         }}
         title="Upload Submission"
-        size="lg"
+        centered
       >
-        <SubmissionUpload
-          onFileSelect={(file) => {
+        <FileInput
+          accept=".py"
+          label="Upload file with your XAI method"
+          value={uploadSubmissionFile}
+          onChange={(file) => {
+            setSubmissionUploadError(null);
+            setSubmissionUploadScore(null);
+            setSubmissionUploadProgress(0);
             setUploadSubmissionFile(file);
-            addSubmission(file);
           }}
-          isDarkMode={isDark}
-          isLoading={isLoadingUploadSubmission}
-          error={submissionUploadError}
-          progress={submissionUploadProgress}
+          placeholder="Upload files"
+          disabled={isLoadingUploadSubmission}
         />
-        {isLoadingUploadSubmission && (
-          <div className="flex justify-center items-center mt-4">
-            <Loader type="dots" />
-            <span className="ml-2">Upload läuft...</span>
-          </div>
+        <Group justify="flex-end" mt="sm">
+          <Button
+            disabled={isLoadingUploadSubmission || !uploadSubmissionFile}
+            onClick={() => {
+              if (!uploadSubmissionFile) {
+                return;
+              }
+              addSubmission(uploadSubmissionFile);
+            }}
+          >
+            Upload
+          </Button>
+        </Group>
+        {uploadSubmissionFile !== null && (
+          <>
+            <Divider my="sm" />
+            <Group justify="space-between">
+              <Text>Status: {` ${determineSubmissionEvaluationStatus()}`}</Text>
+              {submissionUploadScore && (
+                <Text>
+                  Score:{" "}
+                  <Text
+                    span
+                    c="green"
+                    inherit
+                    fw={700}
+                  >{` ${submissionUploadScore.score.toFixed(4)}`}</Text>
+                </Text>
+              )}
+            </Group>
+            <Progress
+              value={submissionUploadProgress}
+              transitionDuration={750}
+              mt="sm"
+              animated={isLoadingUploadSubmission}
+              color={
+                submissionUploadScore
+                  ? "green"
+                  : submissionUploadError
+                  ? "red"
+                  : "blue"
+              }
+            />
+            {submissionUploadError !== null && (
+              <Alert
+                variant="light"
+                color="red"
+                title="Submission Upload Error"
+                icon={<IconInfoCircle />}
+                mt="sm"
+              >
+                {submissionUploadError}
+              </Alert>
+            )}
+          </>
         )}
       </Modal>
     </main>
