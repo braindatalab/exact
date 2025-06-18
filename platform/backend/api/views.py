@@ -233,6 +233,30 @@ def get_challenges(request):
     serializer = ChallengeSerializer(challenges, many=True)
     return Response(serializer.data)
 
+@api_view(['GET'])
+def get_paginated_challenges(request):
+    page = int(request.GET.get('page', 1))
+    page_size = int(request.GET.get('page_size', 10))
+    
+    challenges = Challenge.objects.all().order_by('-created_at')
+    total_challenges = challenges.count()
+    
+    start = (page - 1) * page_size
+    end = start + page_size
+    
+    paginated_challenges = challenges[start:end]
+    serializer = ChallengeSerializer(paginated_challenges, many=True)
+    
+    return Response({
+        'challenges': serializer.data,
+        'pagination': {
+            'total': total_challenges,
+            'page': page,
+            'page_size': page_size,
+            'total_pages': (total_challenges + page_size - 1) // page_size
+        }
+    })
+
 # upload a new score (we don't need this endpoint anymore, because xai_detail function now automatically adds the score to the database)
 # @api_view(['POST'])
 # def add_score(request):

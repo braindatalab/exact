@@ -9,6 +9,8 @@ import {
   Loader,
   Paper,
   Text,
+  Pagination,
+  Group,
 } from "@mantine/core";
 import ChallengeCard from "../components/ChallengeCard";
 import { ChallengeData } from "../components/types";
@@ -19,20 +21,33 @@ import Link from "next/link";
 
 const Competitions = () => {
   const client = useClient();
-
   const [challenges, setChallenges] = useState<ChallengeData[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchChallenges = async (page: number) => {
+    setIsLoading(true);
+    try {
+      const response = await client.get(`/api/challenges/paginated/?page=${page}&page_size=9`);
+      const { challenges: paginatedChallenges, pagination } = response.data;
+      setChallenges(paginatedChallenges.map((c: any) => convertChallengeData(c)));
+      setTotalPages(pagination.total_pages);
+    } catch (err) {
+      setError("Error loading challenges");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    client
-      .get("/api/challenges")
-      .then(({ data }) => {
-        setChallenges(data.map((c: any) => convertChallengeData(c)));
-      })
-      .catch(() => {
-        setError("Error loading challenges");
-      });
-  }, [client]);
+    fetchChallenges(currentPage);
+  }, [currentPage]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   return (
     <main className="flex flex-1 flex-col bg-gray-300">
@@ -44,16 +59,27 @@ const Competitions = () => {
           Explore and Participate in Explainable AI Benchmarking Challenges.
         </Text>
         {/* <Leaderboard /> */}
-        {
-          challenges === null ? (
-            error === null ? (
-              <Center mt="xl">
-                <Loader />
-              </Center>
-            ) : (
-              <></>
-            )
-          ) : (
+        {isLoading ? (
+          <Center mt="xl">
+            <Loader />
+          </Center>
+        ) : challenges === null ? (
+          error && (
+            <Alert
+              variant="light"
+              color="red"
+              radius="md"
+              withCloseButton
+              title="Error"
+              w="100%"
+              onClose={() => setError(null)}
+              icon={<IconAlertCircle />}
+            >
+              {error}
+            </Alert>
+          )
+        ) : (
+          <>
             <Grid w="100%">
               {challenges.map((challenge, i) => (
                 <Grid.Col span={{ base: 12, md: 6, lg: 4 }} key={i}>
@@ -86,24 +112,15 @@ const Competitions = () => {
                 </Paper>
               </Grid.Col>
             </Grid>
-          )
-          //   <Text>Unfortunately, there are no open challenges currently...</Text>
-        }
-        {error && (
-          <Alert
-            variant="light"
-            color="red"
-            radius="md"
-            withCloseButton
-            title="Error"
-            w="100%"
-            onClose={() => {
-              setError(null);
-            }}
-            icon={<IconAlertCircle />}
-          >
-            {error}
-          </Alert>
+            <Group justify="center" mt="xl">
+              <Pagination
+                total={totalPages}
+                value={currentPage}
+                onChange={handlePageChange}
+                withEdges
+              />
+            </Group>
+          </>
         )}
       </Container>
     </main>

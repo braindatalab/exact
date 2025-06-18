@@ -22,18 +22,18 @@ from django.views.generic import TemplateView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/challenges/paginated/', get_paginated_challenges, name='get_paginated_challenges'),  # Paginated endpoint first
+    path('api/challenges/', get_challenges),
+    path('api/challenge/<str:challenge_id>/', get_challenge),
+    path('api/challenge/create/', create_challenge),
+    path('api/challenge/<str:challenge_id>/delete/', delete_challenge),
     path('api/xai/<str:challenge_id>/', xai_detail), # For submitting XAI-methods and getting the computed score
     path('api/score/<str:challenge_id>/', score_detail),
     path('api/dataset/<str:challenge_id>/', dataset_detail),
     path('api/mlmodel/<str:challenge_id>/', mlmodel_detail),
     path('api/xaimethod/<str:challenge_id>/', xaimethod_detail),
-    path('api/challenge/create/', create_challenge), 
-    path('api/challenge/<str:challenge_id>/delete/', delete_challenge),  # New URL for deleting a challenge
     path('challenge/form', challenge_form_view),  # New URL pattern for the form,
     path('success/', success_view, name='success'),
-    path('api/challenge/<str:challenge_id>/', get_challenge),
-    path('api/challenges/', get_challenges), 
-    # path('api/newscore/', add_score),  
     path('api/scores/', get_scores),
     path('', include('user_api.urls')),
 ]
