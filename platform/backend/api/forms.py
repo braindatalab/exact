@@ -15,8 +15,8 @@ class ChallengeForm(forms.Form):
     xai_method = forms.FileField()
     dataset = forms.FileField()
     mlmodel = forms.FileField()
-    creator = forms.CharField(max_length=150, required=False)
 
 class ScoreForm(forms.Form):
     file = forms.FileField()
     username= forms.CharField(max_length=100)
+    method_name = forms.CharField(max_length=100, required=False)  

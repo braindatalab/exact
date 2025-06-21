@@ -29,6 +29,7 @@ class Score(models.Model):
     username = models.CharField(max_length=150) 
     challenge_id = models.CharField(max_length=100)
     score = models.FloatField()
+    method_name = models.CharField(max_length=100, blank=True, null=True)  
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -57,7 +58,6 @@ class Challenge(models.Model):
     title        = models.CharField(max_length=100)
     description  = models.TextField()
     created_at   = models.DateTimeField(auto_now_add=True)
-    creator      = models.CharField(max_length=150, null=True, blank=True)
 
     # Uploads ---------------------------------------
     dataset   = models.FileField(

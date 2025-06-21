@@ -28,7 +28,7 @@ urlpatterns = [
     path('api/mlmodel/<str:challenge_id>/', mlmodel_detail),
     path('api/xaimethod/<str:challenge_id>/', xaimethod_detail),
     path('api/challenge/create/', create_challenge), 
-    path('api/challenge/<str:challenge_id>/delete/', delete_challenge),  # New URL for deleting a challenge
+    #path('api/challenge/<str:challenge_id>/delete/', delete_challenge),  # New URL for deleting a challenge
     path('challenge/form', challenge_form_view),  # New URL pattern for the form,
     path('success/', success_view, name='success'),
     path('api/challenge/<str:challenge_id>/', get_challenge),
