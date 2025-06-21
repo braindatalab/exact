@@ -17,6 +17,7 @@ import {
   Progress,
   Table,
   Text,
+  TextInput
 } from "@mantine/core";
 import { ChallengeData, Score } from "@/app/components/types";
 import { useClient, useUser } from "@/app/components/UserContext";
@@ -60,6 +61,7 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
     string | null
   >(null);
   const [scores, setScores] = useState<Array<Score>>([]);
+  const [methodName, setMethodName] = useState<string | null>(null);
 
   const {
     data: scoreData,
@@ -107,16 +109,21 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
 
   const addSubmission = (file: File) => {
     if (!challenge) {
-      return;
+    return;
     }
     setSubmissionUploadError(null);
     setSubmissionUploadScore(null);
     setSubmissionUploadProgress(90);
     setIsLoadingUploadSubmission(true);
+    
     const formData = new FormData();
     formData.append("file", file);
     const username = user && user.username ? user.username : "anonymous";
     formData.append("username", username);
+  
+    const defaultMethodName = file.name.replace(/\.[^/.]+$/, "");
+    const finalMethodName = methodName?.trim() || defaultMethodName;
+    formData.append("method_name", finalMethodName);
     client
       .post(`/api/xai/${challenge.id}/`, formData)
       .then((res) => {
@@ -225,7 +232,7 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
                   <Table
                     data={{
                       caption: "Your Contributions To This Challenge",
-                      head: ["Submitted at", "Link to file", "Score"],
+                      head: ["Submitted at", "Method", "Link to file", "Score"],
                       body: scores.reduce((t: Array<any>, s: Score) => {
                         if (s.username !== user.username) {
                           return t;
@@ -234,6 +241,7 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
                           ...t,
                           [
                             formatDateGerman(s.createdAt),
+                            s.methodName || "Unknown Method",
                             "coming soon...",
                             s.score,
                           ],
@@ -395,6 +403,16 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
                           textAlign: "left",
                           padding: "8px",
                           borderBottom: "1px solid #e0e0e0",
+                          borderRight: "1px solid #e0e0e0",
+                        }}
+                      >
+                        Method
+                      </th>
+                      <th
+                        style={{
+                          textAlign: "left",
+                          padding: "8px",
+                          borderBottom: "1px solid #e0e0e0",
                         }}
                       >
                         Score
@@ -425,30 +443,17 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
                           >
                             {s.username}
                           </td>
+                          <td
+                            style={{
+                              padding: "8px",
+                              borderRight: "1px solid #e0e0e0",
+                            }}
+                          >
+                            {s.methodName || "Unknown Method"}
+                          </td>
                           <td style={{ padding: "8px" }}>{s.score}</td>
                         </tr>
                       ))}
-                    {/* {LEADERBOARD_MOCK_DATA.ranking.map((entry, index) => (
-                    <tr key={index} style={{ borderTop: "1px solid #e0e0e0" }}>
-                      <td
-                        style={{
-                          padding: "8px",
-                          borderRight: "1px solid #e0e0e0",
-                        }}
-                      >
-                        {index + 1}
-                      </td>
-                      <td
-                        style={{
-                          padding: "8px",
-                          borderRight: "1px solid #e0e0e0",
-                        }}
-                      >
-                        {entry.user}
-                      </td>
-                      <td style={{ padding: "8px" }}>{entry.score}</td>
-                    </tr>
-                  ))} */}
                   </tbody>
                 </Table>
               ) : (
@@ -466,10 +471,20 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
           setSubmissionUploadProgress(0);
           setSubmissionUploadScore(null);
           setSubmissionUploadError(null);
+          setMethodName(null); // ✅ Method Name zurücksetzen
         }}
         title="Upload Submission"
         size="lg"
       >
+        <TextInput
+          label="Method Name"
+          placeholder="Enter your XAI method name"
+          value={methodName || ""}
+          onChange={(event) => setMethodName(event.currentTarget.value)}
+          mb="md"
+          required
+        />
+        
         <SubmissionUpload
           onFileSelect={(file) => {
             setUploadSubmissionFile(file);
@@ -480,12 +495,7 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
           error={submissionUploadError}
           progress={submissionUploadProgress}
         />
-        {isLoadingUploadSubmission && (
-          <div className="flex justify-center items-center mt-4">
-            <Loader type="dots" />
-            <span className="ml-2">Upload läuft...</span>
-          </div>
-        )}
+        {/* Rest des Modals... */}
       </Modal>
     </main>
   );
