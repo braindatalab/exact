@@ -126,13 +126,20 @@ export const LEADERBOARD_MOCK_DATA: LeaderboardData = {
   ],
 };
 
+// Aktualisierte convertScore Funktion mit EMD und IMA Feldern
 export const convertScore = (score: any) => {
   return {
-    score: score["score"],
+    score: score["score"] || null,
     challengeId: score["challenge_id"],
     username: score["username"],
     methodName: score["method_name"],
     createdAt: new Date(score["created_at"]),
+    // Neue Felder
+    emdScore: score["emd_score"] || null,
+    emdStd: score["emd_std"] || null,
+    imaScore: score["ima_score"] || null,
+    imaStd: score["ima_std"] || null,
+    status: score["status"] || "completed",
   };
 };
 

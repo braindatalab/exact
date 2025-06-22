@@ -17,9 +17,13 @@ import {
   Progress,
   Table,
   Text,
-  TextInput
+  TextInput,
+  Tabs,
+  Badge,
+  Tooltip,
+  Box,
 } from "@mantine/core";
-import { ChallengeData, Score } from "@/app/components/types";
+import { ChallengeData, Score, DetailedScores } from "@/app/components/types";
 import { useClient, useUser } from "@/app/components/UserContext";
 import { notFound } from "next/navigation";
 import {
@@ -34,7 +38,7 @@ import {
   formatDateGerman,
 } from "@/app/components/utils";
 import { AxiosError } from "axios";
-import { IconInfoCircle } from "@tabler/icons-react";
+import { IconInfoCircle, IconChartBar, IconTarget } from "@tabler/icons-react";
 import useSWR from "swr";
 import SubmissionUpload from "@/app/components/SubmissionUpload";
 import { useMantineColorScheme } from "@mantine/core";
@@ -57,11 +61,14 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
     useState<number>(0);
   const [submissionUploadScore, setSubmissionUploadScore] =
     useState<Score | null>(null);
+  const [submissionUploadDetailedScores, setSubmissionUploadDetailedScores] =
+    useState<DetailedScores | null>(null);
   const [submissionUploadError, setSubmissionUploadError] = useState<
     string | null
   >(null);
   const [scores, setScores] = useState<Array<Score>>([]);
   const [methodName, setMethodName] = useState<string | null>(null);
+  const [activeMetric, setActiveMetric] = useState<string>("emd");
 
   const {
     data: scoreData,
@@ -98,8 +105,9 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
         setUploadSubmissionFile(null);
         setSubmissionUploadProgress(0);
         setSubmissionUploadScore(null);
+        setSubmissionUploadDetailedScores(null);
         setSubmissionUploadError(null);
-      }, 1000); // 1 Sekunde nach Abschluss schließen
+      }, 1000);
     }
   }, [isLoadingUploadSubmission, uploadSubmissionFile, submissionUploadProgress, submissionUploadError]);
 
@@ -113,6 +121,7 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
     }
     setSubmissionUploadError(null);
     setSubmissionUploadScore(null);
+    setSubmissionUploadDetailedScores(null);
     setSubmissionUploadProgress(90);
     setIsLoadingUploadSubmission(true);
     
@@ -127,11 +136,19 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
     client
       .post(`/api/xai/${challenge.id}/`, formData)
       .then((res) => {
-        const { message, score }: { message: string; score: any } = res.data;
+        const { message, score, detailed_scores }: { 
+          message: string; 
+          score: any; 
+          detailed_scores?: DetailedScores 
+        } = res.data;
+        
         if (score) {
           setSubmissionUploadScore(convertScore(score));
         }
-        if (message.toLowerCase() !== "success") {
+        if (detailed_scores) {
+          setSubmissionUploadDetailedScores(detailed_scores);
+        }
+        if (message.toLowerCase() !== "success" && !message.toLowerCase().includes("completed")) {
           setSubmissionUploadError(message);
         }
         setSubmissionUploadProgress(100);
@@ -144,22 +161,23 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
       });
   };
 
-  const determineSubmissionEvaluationStatus = () => {
-    if (!submissionUploadScore && !submissionUploadError) {
-      if (uploadSubmissionFile) {
-        if (isLoadingUploadSubmission) {
-          return "Loading";
-        }
-        return "File selected";
-      }
-      return "No file selected";
-    } else {
-      if (submissionUploadError) {
-        return "Error";
+  const formatScore = (score: number | null | undefined): string => {
+    if (score === null || score === undefined) return "-";
+    return score.toFixed(4);
+  };
+
+  const getSortedScores = (metric: string) => {
+    return [...scores].sort((a, b) => {
+      if (metric === "ima") {
+        const aScore = a.imaScore ?? 0;
+        const bScore = b.imaScore ?? 0;
+        return bScore - aScore; // Higher is better
       } else {
-        return "Success";
+        const aScore = a.emdScore ?? a.score ?? 0;
+        const bScore = b.emdScore ?? b.score ?? 0;
+        return bScore - aScore; // Higher is better
       }
-    }
+    });
   };
 
   return (
@@ -193,7 +211,7 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
     hsla(0, 0%, 100%, 0.951) 90.1%,
     hsla(0, 0%, 100%, 0.987) 94.7%,
     hsl(0, 0%, 100%) 100%
-  )" // gradient easing done with https://larsenwork.com/easing-gradients/
+  )"
                   opacity={1}
                 />
                 <div
@@ -232,7 +250,7 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
                   <Table
                     data={{
                       caption: "Your Contributions To This Challenge",
-                      head: ["Submitted at", "Method", "Link to file", "Score"],
+                      head: ["Submitted at", "Method", "EMD Score", "IMA Score"],
                       body: scores.reduce((t: Array<any>, s: Score) => {
                         if (s.username !== user.username) {
                           return t;
@@ -242,8 +260,22 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
                           [
                             formatDateGerman(s.createdAt),
                             s.methodName || "Unknown Method",
-                            "coming soon...",
-                            s.score,
+                            <Group gap="xs">
+                              <Text>{formatScore(s.emdScore)}</Text>
+                              {s.emdStd && (
+                                <Text size="xs" c="dimmed">
+                                  ±{formatScore(s.emdStd)}
+                                </Text>
+                              )}
+                            </Group>,
+                            <Group gap="xs">
+                              <Text>{formatScore(s.imaScore)}</Text>
+                              {s.imaStd && (
+                                <Text size="xs" c="dimmed">
+                                  ±{formatScore(s.imaStd)}
+                                </Text>
+                              )}
+                            </Group>,
                           ],
                         ];
                       }, []),
@@ -298,28 +330,6 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
                 <Text>Challenge ID</Text>
                 <Text>{challenge.id}</Text>
               </Group>
-              {user && user.username && challenge.creator && user.username === challenge.creator && (
-                <Button
-                  color="red"
-                  mt="lg"
-                  fullWidth
-                  onClick={() => {
-                    if (window.confirm('Möchtest du diese Challenge wirklich löschen?')) {
-                      client
-                        .delete(`/api/challenge/${challenge.id}/delete/`)
-                        .then(() => {
-                          window.location.href = '/competitions';
-                        })
-                        .catch((err) => {
-                          console.error('Error deleting challenge:', err);
-                          alert('Fehler beim Löschen der Challenge. Bitte versuche es erneut.');
-                        });
-                    }
-                  }}
-                >
-                  Challenge löschen
-                </Button>
-              )}
             </Paper>
             <Paper shadow="md" mt="lg" p="sm">
               <Text size="xl" fw="600" ta="center">
@@ -361,12 +371,41 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
                 Leaderboard
               </Text>
               <Divider mb="sm" />
+              
+              <Tabs value={activeMetric} onChange={(value) => setActiveMetric(value || "emd")}>
+                <Tabs.List grow>
+                  <Tabs.Tab value="emd" leftSection={<IconChartBar size={16} />}>
+                    EMD Score
+                  </Tabs.Tab>
+                  <Tabs.Tab value="ima" leftSection={<IconTarget size={16} />}>
+                    IMA Score
+                  </Tabs.Tab>
+                </Tabs.List>
+
+                <Tabs.Panel value="emd" pt="xs">
+                  <Box mb="xs">
+                    <Text size="sm" c="dimmed">
+                      Earth Mover's Distance - measures spatial alignment
+                    </Text>
+                  </Box>
+                </Tabs.Panel>
+
+                <Tabs.Panel value="ima" pt="xs">
+                  <Box mb="xs">
+                    <Text size="sm" c="dimmed">
+                      Importance Mass Accuracy - measures concentration accuracy
+                    </Text>
+                  </Box>
+                </Tabs.Panel>
+              </Tabs>
+
               {isLoadingScoreData && scores.length === 0 ? (
-                <Center>
+                <Center mt="md">
                   <Loader type="dots" />
                 </Center>
               ) : scores.length > 0 ? (
                 <Table
+                  mt="md"
                   style={{
                     width: "100%",
                     borderCollapse: "separate",
@@ -378,86 +417,61 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
                 >
                   <thead style={{ backgroundColor: "#f5f5f5" }}>
                     <tr>
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: "8px",
-                          borderBottom: "1px solid #e0e0e0",
-                          borderRight: "1px solid #e0e0e0",
-                        }}
-                      >
+                      <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #e0e0e0" }}>
                         Rank
                       </th>
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: "8px",
-                          borderBottom: "1px solid #e0e0e0",
-                          borderRight: "1px solid #e0e0e0",
-                        }}
-                      >
+                      <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #e0e0e0" }}>
                         User
                       </th>
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: "8px",
-                          borderBottom: "1px solid #e0e0e0",
-                          borderRight: "1px solid #e0e0e0",
-                        }}
-                      >
+                      <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #e0e0e0" }}>
                         Method
                       </th>
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: "8px",
-                          borderBottom: "1px solid #e0e0e0",
-                        }}
-                      >
-                        Score
+                      <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #e0e0e0" }}>
+                        {activeMetric === "ima" ? "IMA" : "EMD"}
                       </th>
                     </tr>
                   </thead>
                   <tbody>
-                    {scores
-                      .sort((a, b) => a.score - b.score)
-                      .map((s, index) => (
-                        <tr
-                          key={index}
-                          style={{ borderTop: "1px solid #e0e0e0" }}
-                        >
-                          <td
-                            style={{
-                              padding: "8px",
-                              borderRight: "1px solid #e0e0e0",
-                            }}
-                          >
-                            {index + 1}
-                          </td>
-                          <td
-                            style={{
-                              padding: "8px",
-                              borderRight: "1px solid #e0e0e0",
-                            }}
-                          >
-                            {s.username}
-                          </td>
-                          <td
-                            style={{
-                              padding: "8px",
-                              borderRight: "1px solid #e0e0e0",
-                            }}
-                          >
-                            {s.methodName || "Unknown Method"}
-                          </td>
-                          <td style={{ padding: "8px" }}>{s.score}</td>
-                        </tr>
-                      ))}
+                    {getSortedScores(activeMetric).map((s, index) => (
+                      <tr key={index} style={{ borderTop: "1px solid #e0e0e0" }}>
+                        <td style={{ padding: "8px" }}>
+                          {index + 1}
+                        </td>
+                        <td style={{ padding: "8px" }}>
+                          {s.username}
+                          {user && s.username === user.username && (
+                            <Badge size="xs" ml="xs" variant="light">You</Badge>
+                          )}
+                        </td>
+                        <td style={{ padding: "8px" }}>
+                          {s.methodName || "Unknown"}
+                        </td>
+                        <td style={{ padding: "8px" }}>
+                          <Group gap="xs">
+                            <Text fw={500}>
+                              {activeMetric === "ima" 
+                                ? formatScore(s.imaScore)
+                                : formatScore(s.emdScore ?? s.score)
+                              }
+                            </Text>
+                            {activeMetric === "ima" && s.imaStd && (
+                              <Text size="xs" c="dimmed">
+                                ±{formatScore(s.imaStd)}
+                              </Text>
+                            )}
+                            {activeMetric === "emd" && s.emdStd && (
+                              <Text size="xs" c="dimmed">
+                                ±{formatScore(s.emdStd)}
+                              </Text>
+                            )}
+                          </Group>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </Table>
               ) : (
-                <Text>No submissions yet...</Text>
+                <Text mt="md">No submissions yet...</Text>
               )}
             </Paper>
           </Grid.Col>
@@ -470,8 +484,9 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
           setUploadSubmissionFile(null);
           setSubmissionUploadProgress(0);
           setSubmissionUploadScore(null);
+          setSubmissionUploadDetailedScores(null);
           setSubmissionUploadError(null);
-          setMethodName(null); // ✅ Method Name zurücksetzen
+          setMethodName(null);
         }}
         title="Upload Submission"
         size="lg"
@@ -495,7 +510,36 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
           error={submissionUploadError}
           progress={submissionUploadProgress}
         />
-        {/* Rest des Modals... */}
+        
+        {submissionUploadScore && submissionUploadDetailedScores && (
+          <Alert icon={<IconInfoCircle size={16} />} mt="md" color="green">
+            <Text fw={500}>Evaluation Complete!</Text>
+            <Group mt="xs" gap="xl">
+              <div>
+                <Text size="sm" c="dimmed">EMD Score</Text>
+                <Text fw={600}>
+                  {formatScore(submissionUploadScore.emdScore)}
+                  {submissionUploadDetailedScores.emd.std && (
+                    <Text span size="sm" c="dimmed" ml="xs">
+                      ±{formatScore(submissionUploadDetailedScores.emd.std)}
+                    </Text>
+                  )}
+                </Text>
+              </div>
+              <div>
+                <Text size="sm" c="dimmed">IMA Score</Text>
+                <Text fw={600}>
+                  {formatScore(submissionUploadScore.imaScore)}
+                  {submissionUploadDetailedScores.ima.std && (
+                    <Text span size="sm" c="dimmed" ml="xs">
+                      ±{formatScore(submissionUploadDetailedScores.ima.std)}
+                    </Text>
+                  )}
+                </Text>
+              </div>
+            </Group>
+          </Alert>
+        )}
       </Modal>
     </main>
   );
