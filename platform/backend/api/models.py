@@ -15,6 +15,15 @@ def challenge_path(instance: "Challenge", filename: str, prefix: str) -> str:
     safe_prefix = prefix.strip().lower()
     return f"challenges/{instance.challenge_id}/{safe_prefix}/{filename}"
 
+def dataset_upload_path(instance, filename):
+    return challenge_path(instance, filename, "dataset")
+
+def model_upload_path(instance, filename):
+    return challenge_path(instance, filename, "model")
+
+def xai_upload_path(instance, filename):
+    return challenge_path(instance, filename, "xai")
+
 # Score Model
 class Score(models.Model):
     username = models.CharField(max_length=150) 
@@ -48,18 +57,19 @@ class Challenge(models.Model):
     title        = models.CharField(max_length=100)
     description  = models.TextField()
     created_at   = models.DateTimeField(auto_now_add=True)
+    creator      = models.CharField(max_length=150, null=True, blank=True)
 
     # Uploads ---------------------------------------
     dataset   = models.FileField(
-        upload_to=lambda i, f: challenge_path(i, f, "dataset"),
+        upload_to=dataset_upload_path,
         blank=True, null=True
     )
     mlmodel   = models.FileField(
-        upload_to=lambda i, f: challenge_path(i, f, "model"),
+        upload_to=model_upload_path,
         blank=True, null=True
     )
     xaimethod = models.FileField(
-        upload_to=lambda i, f: challenge_path(i, f, "xai"),
+        upload_to=xai_upload_path,
         blank=True, null=True
     )
 
