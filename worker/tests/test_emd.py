@@ -3,7 +3,7 @@ import numpy as np
 import torch as t
 from scipy.spatial.distance import cdist
 from ot.lp import emd
-from main import create_cost_matrix, sum_to_1, continuous_emd
+from worker.emd import create_cost_matrix, sum_to_1, continuous_emd
 
 class TestEMD(unittest.TestCase):
 

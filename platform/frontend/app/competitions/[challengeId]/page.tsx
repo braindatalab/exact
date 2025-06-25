@@ -6,7 +6,6 @@ import {
   Button,
   Center,
   Divider,
-  FileInput,
   Grid,
   Group,
   Image,
@@ -14,13 +13,11 @@ import {
   Modal,
   Overlay,
   Paper,
-  Progress,
   Table,
   Text,
   TextInput,
   Tabs,
   Badge,
-  Tooltip,
   Box,
 } from "@mantine/core";
 import { ChallengeData, Score, DetailedScores } from "@/app/components/types";
@@ -31,7 +28,6 @@ import {
   IconModel,
   IconTemplate,
   convertChallengeData,
-  LEADERBOARD_MOCK_DATA,
   convertScore,
   fetcher,
   BASE_URL_API,
@@ -171,11 +167,11 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
       if (metric === "ima") {
         const aScore = a.imaScore ?? 0;
         const bScore = b.imaScore ?? 0;
-        return bScore - aScore; // Higher is better
+        return bScore - aScore;
       } else {
         const aScore = a.emdScore ?? a.score ?? 0;
         const bScore = b.emdScore ?? b.score ?? 0;
-        return bScore - aScore; // Higher is better
+        return bScore - aScore;
       }
     });
   };
@@ -193,43 +189,11 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
               <AspectRatio ratio={4 / 2} pos="relative">
                 <Image src={challenge.thumbnail} alt="Demo" />
                 <Overlay
-                  gradient="linear-gradient(
-    to bottom,
-    hsla(0, 0%, 100%, 0) 0%,
-    hsla(0, 0%, 100%, 0.013) 13.5%,
-    hsla(0, 0%, 100%, 0.049) 25.2%,
-    hsla(0, 0%, 100%, 0.104) 35.4%,
-    hsla(0, 0%, 100%, 0.175) 44.1%,
-    hsla(0, 0%, 100%, 0.259) 51.7%,
-    hsla(0, 0%, 100%, 0.352) 58.2%,
-    hsla(0, 0%, 100%, 0.45) 63.9%,
-    hsla(0, 0%, 100%, 0.55) 68.9%,
-    hsla(0, 0%, 100%, 0.648) 73.4%,
-    hsla(0, 0%, 100%, 0.741) 77.6%,
-    hsla(0, 0%, 100%, 0.825) 81.7%,
-    hsla(0, 0%, 100%, 0.896) 85.8%,
-    hsla(0, 0%, 100%, 0.951) 90.1%,
-    hsla(0, 0%, 100%, 0.987) 94.7%,
-    hsl(0, 0%, 100%) 100%
-  )"
+                  gradient="linear-gradient(to bottom, hsla(0, 0%, 100%, 0) 0%, hsla(0, 0%, 100%, 0.013) 13.5%, hsla(0, 0%, 100%, 0.049) 25.2%, hsla(0, 0%, 100%, 0.104) 35.4%, hsla(0, 0%, 100%, 0.175) 44.1%, hsla(0, 0%, 100%, 0.259) 51.7%, hsla(0, 0%, 100%, 0.352) 58.2%, hsla(0, 0%, 100%, 0.45) 63.9%, hsla(0, 0%, 100%, 0.55) 68.9%, hsla(0, 0%, 100%, 0.648) 73.4%, hsla(0, 0%, 100%, 0.741) 77.6%, hsla(0, 0%, 100%, 0.825) 81.7%, hsla(0, 0%, 100%, 0.896) 85.8%, hsla(0, 0%, 100%, 0.951) 90.1%, hsla(0, 0%, 100%, 0.987) 94.7%, hsl(0, 0%, 100%) 100%)"
                   opacity={1}
                 />
-                <div
-                  style={{
-                    position: "absolute",
-                    top: "100%",
-                    transform: "translateY(-30px)",
-                    zIndex: 200,
-                    textAlign: "center",
-                  }}
-                >
-                  <Text
-                    size="30px"
-                    fw="900"
-                    tt="uppercase"
-                    variant="gradient"
-                    gradient={{ from: "blue", to: "cyan", deg: 90 }}
-                  >
+                <div style={{ position: "absolute", top: "100%", transform: "translateY(-30px)", zIndex: 200, textAlign: "center" }}>
+                  <Text size="30px" fw="900" tt="uppercase" variant="gradient" gradient={{ from: "blue", to: "cyan", deg: 90 }}>
                     {challenge.title}
                   </Text>
                 </div>
@@ -237,9 +201,7 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
               <Text m="md">{challenge.description}</Text>
             </Paper>
             <Paper shadow="md" p="sm" mt="lg">
-              <Text size="xl" fw="600" ta="center">
-                Your Submissions
-              </Text>
+              <Text size="xl" fw="600" ta="center">Your Submissions</Text>
               <Divider my="sm" />
               {user ? (
                 isLoadingScoreData && scores.length === 0 ? (
@@ -260,22 +222,8 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
                           [
                             formatDateGerman(s.createdAt),
                             s.methodName || "Unknown Method",
-                            <Group gap="xs">
-                              <Text>{formatScore(s.emdScore)}</Text>
-                              {s.emdStd && (
-                                <Text size="xs" c="dimmed">
-                                  ±{formatScore(s.emdStd)}
-                                </Text>
-                              )}
-                            </Group>,
-                            <Group gap="xs">
-                              <Text>{formatScore(s.imaScore)}</Text>
-                              {s.imaStd && (
-                                <Text size="xs" c="dimmed">
-                                  ±{formatScore(s.imaStd)}
-                                </Text>
-                              )}
-                            </Group>,
+                            <Text>{formatScore(s.emdScore)}</Text>,
+                            <Text>{formatScore(s.imaScore)}</Text>,
                           ],
                         ];
                       }, []),
@@ -298,173 +246,57 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
           </Grid.Col>
           <Grid.Col span={{ base: 12, lg: 4 }}>
             <Paper shadow="md" p="sm">
-              <Text size="xl" fw="600" ta="center">
-                Metadata
-              </Text>
+              <Text size="xl" fw="600" ta="center">Metadata</Text>
               <Divider mb="sm" />
-              <Group justify="space-between">
-                <Text>Created by</Text>
-                <Text>
-                  {challenge.creator || "Kein Creator angegeben"}
-                </Text>
-              </Group>
-              <Group justify="space-between">
-                <Text>Created at</Text>
-                <Text>{formatDateGerman(challenge.createdAt)}</Text>
-              </Group>
-              <Group justify="space-between">
-                <Text>Closes on</Text>
-                <Text>
-                  {challenge.deadline ? formatDateGerman(challenge.deadline) : "-"}
-                </Text>
-              </Group>
-              <Group justify="space-between">
-                <Text>Number Participants</Text>
-                <Text>
-                  {challenge.participants
-                    ? challenge.participants
-                    : "number partipants unknown"}
-                </Text>
-              </Group>
-              <Group justify="space-between">
-                <Text>Challenge ID</Text>
-                <Text>{challenge.id}</Text>
-              </Group>
+              <Group justify="space-between"><Text>Created by</Text><Text>{challenge.creator || "Kein Creator angegeben"}</Text></Group>
+              <Group justify="space-between"><Text>Created at</Text><Text>{formatDateGerman(challenge.createdAt)}</Text></Group>
+              <Group justify="space-between"><Text>Closes on</Text><Text>{challenge.deadline ? formatDateGerman(challenge.deadline) : "-"}</Text></Group>
+              <Group justify="space-between"><Text>Number Participants</Text><Text>{challenge.participants ? challenge.participants : "number partipants unknown"}</Text></Group>
+              <Group justify="space-between"><Text>Challenge ID</Text><Text>{challenge.id}</Text></Group>
             </Paper>
             <Paper shadow="md" mt="lg" p="sm">
-              <Text size="xl" fw="600" ta="center">
-                Resources
-              </Text>
+              <Text size="xl" fw="600" ta="center">Resources</Text>
               <Divider mb="sm" />
-              <Button
-                rightSection={<IconDataset size={16} />}
-                fullWidth
-                variant="light"
-                component="a"
-                href={`http://localhost:8000/api/dataset/${challenge.id}`}
-              >
-                Download Dataset
-              </Button>
-              <Button
-                rightSection={<IconTemplate size={16} />}
-                mt="xs"
-                fullWidth
-                variant="light"
-                component="a"
-                href={`http://localhost:8000/api/xaimethod/${challenge.id}`}
-              >
-                Download XAI Method Template
-              </Button>
-              <Button
-                rightSection={<IconModel size={16} />}
-                mt="xs"
-                fullWidth
-                variant="light"
-                component="a"
-                href={`http://localhost:8000/api/mlmodel/${challenge.id}`}
-              >
-                Download ML Model
-              </Button>
+              <Button rightSection={<IconDataset size={16} />} fullWidth variant="light" component="a" href={`http://localhost:8000/api/dataset/${challenge.id}`}>Download Dataset</Button>
+              <Button rightSection={<IconTemplate size={16} />} mt="xs" fullWidth variant="light" component="a" href={`http://localhost:8000/api/xaimethod/${challenge.id}`}>Download XAI Method Template</Button>
+              <Button rightSection={<IconModel size={16} />} mt="xs" fullWidth variant="light" component="a" href={`http://localhost:8000/api/mlmodel/${challenge.id}`}>Download ML Model</Button>
             </Paper>
             <Paper shadow="md" mt="lg" p="sm">
-              <Text size="xl" fw="600" ta="center">
-                Leaderboard
-              </Text>
+              <Text size="xl" fw="600" ta="center">Leaderboard</Text>
               <Divider mb="sm" />
-              
               <Tabs value={activeMetric} onChange={(value) => setActiveMetric(value || "emd")}>
                 <Tabs.List grow>
-                  <Tabs.Tab value="emd" leftSection={<IconChartBar size={16} />}>
-                    EMD Score
-                  </Tabs.Tab>
-                  <Tabs.Tab value="ima" leftSection={<IconTarget size={16} />}>
-                    IMA Score
-                  </Tabs.Tab>
+                  <Tabs.Tab value="emd" leftSection={<IconChartBar size={16} />}>EMD Score</Tabs.Tab>
+                  <Tabs.Tab value="ima" leftSection={<IconTarget size={16} />}>IMA Score</Tabs.Tab>
                 </Tabs.List>
-
-                <Tabs.Panel value="emd" pt="xs">
-                  <Box mb="xs">
-                    <Text size="sm" c="dimmed">
-                      Earth Mover's Distance - measures spatial alignment
-                    </Text>
-                  </Box>
-                </Tabs.Panel>
-
-                <Tabs.Panel value="ima" pt="xs">
-                  <Box mb="xs">
-                    <Text size="sm" c="dimmed">
-                      Importance Mass Accuracy - measures concentration accuracy
-                    </Text>
-                  </Box>
-                </Tabs.Panel>
+                <Tabs.Panel value="emd" pt="xs"><Box mb="xs"><Text size="sm" c="dimmed">Earth Mover's Distance</Text></Box></Tabs.Panel>
+                <Tabs.Panel value="ima" pt="xs"><Box mb="xs"><Text size="sm" c="dimmed">Importance Mass Accuracy</Text></Box></Tabs.Panel>
               </Tabs>
-
               {isLoadingScoreData && scores.length === 0 ? (
-                <Center mt="md">
-                  <Loader type="dots" />
-                </Center>
+                <Center mt="md"><Loader type="dots" /></Center>
               ) : scores.length > 0 ? (
-                <Table
-                  mt="md"
-                  style={{
-                    width: "100%",
-                    borderCollapse: "separate",
-                    borderSpacing: "0",
-                    border: "1px solid #e0e0e0",
-                    borderRadius: "8px",
-                    overflow: "hidden",
-                  }}
-                >
+                <Table mt="md" style={{ width: "100%", borderCollapse: "separate", borderSpacing: "0", border: "1px solid #e0e0e0", borderRadius: "8px", overflow: "hidden" }}>
                   <thead style={{ backgroundColor: "#f5f5f5" }}>
                     <tr>
-                      <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #e0e0e0" }}>
-                        Rank
-                      </th>
-                      <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #e0e0e0" }}>
-                        User
-                      </th>
-                      <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #e0e0e0" }}>
-                        Method
-                      </th>
-                      <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #e0e0e0" }}>
-                        {activeMetric === "ima" ? "IMA" : "EMD"}
-                      </th>
+                      <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #e0e0e0" }}>Rank</th>
+                      <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #e0e0e0" }}>User</th>
+                      <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #e0e0e0" }}>Method</th>
+                      <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #e0e0e0" }}>{activeMetric === "ima" ? "IMA" : "EMD"}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {getSortedScores(activeMetric).map((s, index) => (
                       <tr key={index} style={{ borderTop: "1px solid #e0e0e0" }}>
+                        <td style={{ padding: "8px" }}>{index + 1}</td>
+                        <td style={{ padding: "8px" }}>{s.username}{user && s.username === user.username && (<Badge size="xs" ml="xs" variant="light">You</Badge>)}</td>
+                        <td style={{ padding: "8px" }}>{s.methodName || "Unknown"}</td>
                         <td style={{ padding: "8px" }}>
-                          {index + 1}
-                        </td>
-                        <td style={{ padding: "8px" }}>
-                          {s.username}
-                          {user && s.username === user.username && (
-                            <Badge size="xs" ml="xs" variant="light">You</Badge>
-                          )}
-                        </td>
-                        <td style={{ padding: "8px" }}>
-                          {s.methodName || "Unknown"}
-                        </td>
-                        <td style={{ padding: "8px" }}>
-                          <Group gap="xs">
-                            <Text fw={500}>
-                              {activeMetric === "ima" 
-                                ? formatScore(s.imaScore)
-                                : formatScore(s.emdScore ?? s.score)
-                              }
-                            </Text>
-                            {activeMetric === "ima" && s.imaStd && (
-                              <Text size="xs" c="dimmed">
-                                ±{formatScore(s.imaStd)}
-                              </Text>
-                            )}
-                            {activeMetric === "emd" && s.emdStd && (
-                              <Text size="xs" c="dimmed">
-                                ±{formatScore(s.emdStd)}
-                              </Text>
-                            )}
-                          </Group>
+                          <Text fw={500}>
+                            {activeMetric === "ima" 
+                              ? formatScore(s.imaScore)
+                              : formatScore(s.emdScore ?? s.score)
+                            }
+                          </Text>
                         </td>
                       </tr>
                     ))}
@@ -491,51 +323,19 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
         title="Upload Submission"
         size="lg"
       >
-        <TextInput
-          label="Method Name"
-          placeholder="Enter your XAI method name"
-          value={methodName || ""}
-          onChange={(event) => setMethodName(event.currentTarget.value)}
-          mb="md"
-          required
-        />
-        
-        <SubmissionUpload
-          onFileSelect={(file) => {
-            setUploadSubmissionFile(file);
-            addSubmission(file);
-          }}
-          isDarkMode={isDark}
-          isLoading={isLoadingUploadSubmission}
-          error={submissionUploadError}
-          progress={submissionUploadProgress}
-        />
-        
+        <TextInput label="Method Name" placeholder="Enter your XAI method name" value={methodName || ""} onChange={(event) => setMethodName(event.currentTarget.value)} mb="md" required />
+        <SubmissionUpload onFileSelect={(file) => { setUploadSubmissionFile(file); addSubmission(file); }} isDarkMode={isDark} isLoading={isLoadingUploadSubmission} error={submissionUploadError} progress={submissionUploadProgress} />
         {submissionUploadScore && submissionUploadDetailedScores && (
           <Alert icon={<IconInfoCircle size={16} />} mt="md" color="green">
             <Text fw={500}>Evaluation Complete!</Text>
             <Group mt="xs" gap="xl">
               <div>
                 <Text size="sm" c="dimmed">EMD Score</Text>
-                <Text fw={600}>
-                  {formatScore(submissionUploadScore.emdScore)}
-                  {submissionUploadDetailedScores.emd.std && (
-                    <Text span size="sm" c="dimmed" ml="xs">
-                      ±{formatScore(submissionUploadDetailedScores.emd.std)}
-                    </Text>
-                  )}
-                </Text>
+                <Text fw={600}>{formatScore(submissionUploadScore.emdScore)}</Text>
               </div>
               <div>
                 <Text size="sm" c="dimmed">IMA Score</Text>
-                <Text fw={600}>
-                  {formatScore(submissionUploadScore.imaScore)}
-                  {submissionUploadDetailedScores.ima.std && (
-                    <Text span size="sm" c="dimmed" ml="xs">
-                      ±{formatScore(submissionUploadDetailedScores.ima.std)}
-                    </Text>
-                  )}
-                </Text>
+                <Text fw={600}>{formatScore(submissionUploadScore.imaScore)}</Text>
               </div>
             </Group>
           </Alert>
