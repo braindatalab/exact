@@ -12,6 +12,20 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         fields = ('username', 'email', 'password', 'company')
         extra_kwargs = {'password': {'write_only': True}}
     
+    def validate(self, data):
+        """
+        NEU: Fügt eine benutzerdefinierte Validierung hinzu, um spezifische Fehlermeldungen zu geben.
+        """
+        # Prüfen, ob der Benutzername bereits existiert
+        if UserModel.objects.filter(username=data['username']).exists():
+            raise serializers.ValidationError({'error': 'A user with that username already exists.'})
+        
+        # Prüfen, ob die E-Mail bereits existiert
+        if UserModel.objects.filter(email=data['email']).exists():
+            raise serializers.ValidationError({'error': 'A user with that email already exists.'})
+            
+        return data
+
     def create(self, validated_data):
         company_name = validated_data.pop('company', '')
         user_obj = UserModel.objects.create_user(
@@ -20,7 +34,6 @@ class UserRegisterSerializer(serializers.ModelSerializer):
             password=validated_data['password']
         )
         
-        # Company nur erstellen wenn Name angegeben
         if company_name and company_name.strip():
             try:
                 Company.objects.create(user=user_obj, name=company_name)
@@ -28,6 +41,8 @@ class UserRegisterSerializer(serializers.ModelSerializer):
                 print(f"Company creation failed: {e}")
         
         return user_obj
+
+# --- Die anderen Serializer bleiben unverändert ---
 
 class UserLoginSerializer(serializers.Serializer):
     email = serializers.EmailField()

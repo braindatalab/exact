@@ -1,6 +1,8 @@
 import logging
 import docker
 import re
+import os
+from .models import Challenge
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +23,7 @@ def parse_scores_from_logs(logs: str):
 def run_metric_in_container(client: docker.DockerClient, worker_image_id: str, command: list, environment: dict):
     try:
         container = client.containers.run(
-            image=worker_image_id,  # WICHTIG: Wir verwenden jetzt die exakte Image-ID
+            image=worker_image_id,
             command=command,
             environment=environment,
             detach=True
@@ -37,10 +39,6 @@ def run_metric_in_container(client: docker.DockerClient, worker_image_id: str, c
         else:
             logger.error(f"Container for command '{' '.join(command)}' failed with status code {result['StatusCode']}.")
             return {'mean': None, 'std': None}
-            
-    except docker.errors.ContainerError as e:
-        logger.error(f"ContainerError during '{' '.join(command)}'. Logs:\n{e.container.logs().decode('utf-8')}")
-        return {'mean': None, 'std': None}
     except Exception as e:
         logger.error(f"An unexpected error occurred during '{' '.join(command)}': {e}")
         return {'mean': None, 'std': None}
@@ -50,26 +48,39 @@ def spawn_worker_container(worker_id: str, challenge_id: str, xai_method: str):
     final_scores = {'emd_score': None, 'emd_std': None, 'ima_score': None, 'ima_std': None}
     
     try:
-        client = docker.from_env()
-        
-        # NEU: Wir prüfen explizit, ob das lokale Image existiert
+        #  loading challenge data from the database
         try:
-            worker_image = client.images.get("exact-worker")
-            logger.info(f"Local image 'exact-worker' found with ID: {worker_image.id}")
-        except docker.errors.ImageNotFound:
-            logger.error("KRITISCHER FEHLER: Das lokale Docker-Image 'exact-worker' wurde nicht gefunden. Bitte führen Sie 'docker compose build worker' aus.")
-            return ("error: Worker image not found on the server.", final_scores)
+            challenge = Challenge.objects.get(challenge_id=challenge_id)
+            model_filename = os.path.basename(challenge.mlmodel.name)
+            data_filename = os.path.basename(challenge.dataset.name)
+            logger.info(f"Challenge {challenge_id}: Using model '{model_filename}' and data '{data_filename}'")
+        except Challenge.DoesNotExist:
+            logger.error(f"FATAL: Challenge with ID {challenge_id} not found in database.")
+            return ("error: Challenge not found.", final_scores)
+        except Exception as e:
+            logger.error(f"FATAL: Could not get model/data for challenge {challenge_id}. Error: {e}")
+            return (f"error: Could not get challenge files. {e}", final_scores)
 
-        base_environment = {'worker_id': worker_id, 'challenge_id': challenge_id, 'xai_method': xai_method}
+        client = docker.from_env()
+        worker_image = client.images.get("exact-worker")
+
+        #  datanames as dynamic environment variables
+        base_environment = {
+            'worker_id': worker_id,
+            'challenge_id': challenge_id,
+            'xai_method': xai_method,
+            'MODEL_FILE': model_filename,
+            'DATA_FILE': data_filename,
+        }
         
-        # Führe EMD-Berechnung aus
+        # emd calculation
         emd_command = ["python", "emd.py"]
         emd_results = run_metric_in_container(client, worker_image.id, emd_command, base_environment)
         if emd_results:
             final_scores['emd_score'] = emd_results.get('mean')
             final_scores['emd_std'] = emd_results.get('std')
         
-        # Führe IMA-Berechnung aus
+        # ima calculation
         ima_command = ["python", "ima.py"]
         ima_results = run_metric_in_container(client, worker_image.id, ima_command, base_environment)
         if ima_results:
