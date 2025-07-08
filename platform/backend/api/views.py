@@ -61,9 +61,6 @@ def xai_detail(request, challenge_id):
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# Keep all other functions in this file as they were. Only xai_detail is changed.
-# (The following functions are provided for completeness but should be unchanged from your original)
-
 @api_view(['GET', 'POST'])
 def score_detail(request, challenge_id):
     """Get or update scores for a specific challenge."""
