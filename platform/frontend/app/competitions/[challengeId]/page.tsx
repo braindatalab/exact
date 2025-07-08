@@ -65,12 +65,25 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
   const [scores, setScores] = useState<Array<Score>>([]);
   const [methodName, setMethodName] = useState<string | null>(null);
   const [activeMetric, setActiveMetric] = useState<string>("emd");
+  const [metadata, setMetadata] = useState<any>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const {
     data: scoreData,
     error: errorLoadingScoreData,
     isLoading: isLoadingScoreData,
   } = useSWR(`${BASE_URL_API}/api/scores`, fetcher);
+
+useEffect(() => {
+  client
+    .get(`/api/challenge/${params.challengeId}/metadata/`)
+    .then(({ data }) => {
+      setMetadata(data);
+    })
+    .catch((e) => {
+      console.error('Error loading metadata:', e);
+    });
+}, [client, params.challengeId]);
 
   useEffect(() => {
     if (!scoreData) {
@@ -156,6 +169,39 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
         setSubmissionUploadError(e.message === undefined ? null : e.message);
       });
   };
+
+  const deleteChallenge = async () => {
+  if (!challenge || !user?.username) {
+    return;
+  }
+
+  const confirmDelete = window.confirm(
+    `Are you sure you want to delete "${challenge.title}"? This action cannot be undone.`
+  );
+
+  if (!confirmDelete) {
+    return;
+  }
+
+  setIsDeleting(true);
+
+  try {
+    const response = await client.delete(`/api/challenge/${challenge.id}/delete/`, {
+      data: { username: user.username }
+    });
+
+    if (response.status === 200) {
+      alert('Challenge deleted successfully');
+      window.location.href = '/competitions';
+    }
+  } catch (error: any) {
+    console.error('Delete error:', error);
+    const errorMessage = error.response?.data?.error || 'Failed to delete challenge';
+    alert(errorMessage);
+  } finally {
+    setIsDeleting(false);
+  }
+};
 
   const formatScore = (score: number | null | undefined): string => {
     if (score === null || score === undefined) return "-";
@@ -248,12 +294,43 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
             <Paper shadow="md" p="sm">
               <Text size="xl" fw="600" ta="center">Metadata</Text>
               <Divider mb="sm" />
-              <Group justify="space-between"><Text>Created by</Text><Text>{challenge.creator || "Kein Creator angegeben"}</Text></Group>
-              <Group justify="space-between"><Text>Created at</Text><Text>{formatDateGerman(challenge.createdAt)}</Text></Group>
-              <Group justify="space-between"><Text>Closes on</Text><Text>{challenge.deadline ? formatDateGerman(challenge.deadline) : "-"}</Text></Group>
-              <Group justify="space-between"><Text>Number Participants</Text><Text>{challenge.participants ? challenge.participants : "number partipants unknown"}</Text></Group>
-              <Group justify="space-between"><Text>Challenge ID</Text><Text>{challenge.id}</Text></Group>
-            </Paper>
+              <Group justify="space-between">
+                <Text>Created by</Text>
+                <Text>{metadata?.created_by || challenge.creator || "Kein Creator angegeben"}</Text>
+              </Group>
+              <Group justify="space-between">
+                <Text>Created at</Text>
+                <Text>{formatDateGerman(challenge.createdAt)}</Text>
+              </Group>
+              <Group justify="space-between">
+                <Text>Closes on</Text>
+                <Text>{metadata?.closes_on ? formatDateGerman(new Date(metadata.closes_on)) : "-"}</Text>
+              </Group>
+              <Group justify="space-between">
+                <Text>Number Participants</Text>
+                <Text>{metadata?.participant_count ?? challenge.participants ?? "number participants unknown"}</Text>
+              </Group>
+              <Group justify="space-between">
+                <Text>Challenge ID</Text>
+                <Text>{challenge.id}</Text>
+              </Group>
+              {user && metadata?.created_by === user.username && (
+                <>
+                  <Divider my="sm" />
+                  <Group justify="center">
+                    <Button
+                      color="red"
+                      variant="outline"
+                      size="sm"
+                      loading={isDeleting}
+                      onClick={deleteChallenge}
+                    >
+                      Delete Challenge
+                    </Button>
+                  </Group>
+                </>
+              )}
+            </Paper>            
             <Paper shadow="md" mt="lg" p="sm">
               <Text size="xl" fw="600" ta="center">Resources</Text>
               <Divider mb="sm" />

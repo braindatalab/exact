@@ -1,5 +1,3 @@
-# serializers.py
-
 from rest_framework import serializers
 from .models import Score, Challenge
 
@@ -10,10 +8,8 @@ class ScoreSerializer(serializers.ModelSerializer):
     ima_score = serializers.FloatField(required=False, allow_null=True)
     ima_std = serializers.FloatField(required=False, allow_null=True)
     
-    # Legacy score field - now optional
     score = serializers.FloatField(required=False, allow_null=True)
     
-    # Computed field for primary score
     primary_score = serializers.ReadOnlyField()
     
     class Meta:
@@ -22,7 +18,7 @@ class ScoreSerializer(serializers.ModelSerializer):
             'id', 
             'username', 
             'challenge_id', 
-            'score',  # Legacy field
+            'score',  
             'emd_score', 
             'emd_std', 
             'ima_score', 
@@ -49,8 +45,11 @@ class ChallengeSerializer(serializers.ModelSerializer):
             'title',
             'description',
             'created_at',
+            'created_by',
+            'closes_on',
+            'participant_count',
             'dataset',
             'mlmodel',
             'xaimethod'
         ]
-        read_only_fields = ['challenge_id', 'created_at']
+        read_only_fields = ['challenge_id', 'created_at', 'participant_count']

@@ -23,15 +23,12 @@ def model_upload_path(instance, filename):
 def xai_upload_path(instance, filename):
     return challenge_path(instance, filename, "xai")
 
-# Score Model - erweitert für EMD und IMA
 class Score(models.Model):
     username = models.CharField(max_length=150)
     challenge_id = models.CharField(max_length=100)
     
-    # Legacy field für Rückwärtskompatibilität
-    score = models.FloatField(null=True, blank=True)  # Will be deprecated
+    score = models.FloatField(null=True, blank=True)  
     
-    # Neue Score-Felder
     emd_score = models.FloatField(null=True, blank=True)
     emd_std = models.FloatField(null=True, blank=True)
     ima_score = models.FloatField(null=True, blank=True)
@@ -46,15 +43,13 @@ class Score(models.Model):
         ('running', 'Running'),
         ('completed', 'Completed'),
         ('failed', 'Failed')
-    ], default='completed')  # Default completed für Rückwärtskompatibilität
+    ], default='completed')  
     
     error_message = models.TextField(null=True, blank=True)
     
     def save(self, *args, **kwargs):
-        # Wenn nur legacy score gesetzt ist, kopiere zu emd_score
         if self.score is not None and self.emd_score is None:
             self.emd_score = self.score
-        # Wenn emd_score gesetzt ist, update legacy score
         elif self.emd_score is not None:
             self.score = self.emd_score
         super().save(*args, **kwargs)
@@ -76,31 +71,29 @@ class Score(models.Model):
         score_display = " | ".join(scores_str) if scores_str else "No scores"
         return f"User {self.username} - Challenge {self.challenge_id} - {score_display}"
 
-# Challenge model (bleibt unverändert)
 class Challenge(models.Model):
     challenge_id = models.CharField(max_length=100, unique=True, editable=False)
     title = models.CharField(max_length=100)
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     
-    # Uploads
-    dataset = models.FileField(
-        upload_to=dataset_upload_path,
-        blank=True, null=True
-    )
-    mlmodel = models.FileField(
-        upload_to=model_upload_path,
-        blank=True, null=True
-    )
-    xaimethod = models.FileField(
-        upload_to=xai_upload_path,
-        blank=True, null=True
-    )
+    created_by = models.CharField(max_length=150, default="admin")  
+    closes_on = models.DateTimeField(null=True, blank=True)  
     
+    # Uploads
+    dataset = models.FileField(upload_to=dataset_upload_path, blank=True, null=True)
+    mlmodel = models.FileField(upload_to=model_upload_path, blank=True, null=True)
+    xaimethod = models.FileField(upload_to=xai_upload_path, blank=True, null=True)
+
     def save(self, *args, **kwargs):
         if not self.challenge_id:
             self.challenge_id = uuid.uuid4().hex
         super().save(*args, **kwargs)
-    
+
+    @property
+    def participant_count(self):
+        """Anzahl eindeutiger Teilnehmer basierend auf Scores"""
+        return Score.objects.filter(challenge_id=self.challenge_id).values('username').distinct().count()
+
     def __str__(self):
         return f"{self.challenge_id} – {self.title}"
