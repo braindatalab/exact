@@ -61,9 +61,6 @@ def xai_detail(request, challenge_id):
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# Keep all other functions in this file as they were. Only xai_detail is changed.
-# (The following functions are provided for completeness but should be unchanged from your original)
-
 @api_view(['GET', 'POST'])
 def score_detail(request, challenge_id):
     """Get or update scores for a specific challenge."""
@@ -178,15 +175,32 @@ def create_challenge(request):
         form = ChallengeForm(request.POST, request.FILES)
         if form.is_valid():
             unique_id = str(uuid.uuid4())
+            
+            creator = "admin"  
+            
+            if 'created_by' in request.POST:
+                creator = request.POST['created_by']
+            
+            elif hasattr(request, 'user') and request.user.is_authenticated:
+                creator = request.user.username
+            
+            elif 'X-Username' in request.headers:
+                creator = request.headers['X-Username']
+            
             new_challenge = Challenge.objects.create(
                 challenge_id=unique_id,
                 title=form.cleaned_data['title'],
                 description=form.cleaned_data['description'],
+                created_by=creator,
                 xaimethod=form.cleaned_data['xai_method'],
                 dataset=form.cleaned_data['dataset'],
                 mlmodel=form.cleaned_data['mlmodel'],
             )
-            return Response({"message": "Challenge created successfully"}, status=201)
+            return Response({
+                "message": "Challenge created successfully",
+                "challenge_id": unique_id,
+                "created_by": creator
+            }, status=201)
         else: 
             return Response({"errors": form.errors}, status=400)
 
@@ -232,3 +246,65 @@ def get_scores(request):
     scores = Score.objects.all()
     serializer = ScoreSerializer(scores, many=True)
     return Response(serializer.data)
+
+
+@api_view(['GET'])
+def get_challenge_metadata(request, challenge_id):
+    """
+    Get challenge metadata including participant count and other info.
+    """
+    try:
+        challenge = get_object_or_404(Challenge, challenge_id=challenge_id)
+        
+        metadata = {
+            'challenge_id': challenge.challenge_id,
+            'title': challenge.title,
+            'description': challenge.description,
+            'created_at': challenge.created_at.isoformat(),
+            'created_by': challenge.created_by,
+            'closes_on': challenge.closes_on.isoformat() if challenge.closes_on else None,
+            'participant_count': challenge.participant_count,
+        }
+        
+        return Response(metadata)
+    except Challenge.DoesNotExist:
+        return Response({'error': 'Challenge not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+
+@api_view(['DELETE'])
+def delete_challenge(request, challenge_id):
+    """
+    Delete a challenge. Only the creator or admin can delete a challenge.
+    """
+    try:
+        challenge = get_object_or_404(Challenge, challenge_id=challenge_id)
+        
+        current_user = None
+        
+        if 'username' in request.data:
+            current_user = request.data['username']
+        elif 'X-Username' in request.headers:
+            current_user = request.headers['X-Username']
+        elif hasattr(request, 'user') and request.user.is_authenticated:
+            current_user = request.user.username
+        
+        if not current_user:
+            return Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        if challenge.created_by != current_user and current_user != 'admin':
+            return Response({
+                'error': 'Permission denied. You can only delete your own challenges.'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        Score.objects.filter(challenge_id=challenge_id).delete()
+        
+        challenge.delete()
+        
+        return Response({
+            'message': f'Challenge "{challenge.title}" deleted successfully'
+        }, status=status.HTTP_200_OK)
+        
+    except Challenge.DoesNotExist:
+        return Response({'error': 'Challenge not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -57,9 +57,11 @@ const Register = () => {
             setIsLoadingRegister(false);
             router.push("/");
           })
-          .catch(() => {
-            setIsLoadingRegister(false);
-          });
+          .catch((e) => {
+              setIsLoadingRegister(false);
+              const message = e.response?.data?.error || "An unknown registration error occurred.";
+              setAuthenticationError(message);
+        });
       })
       .catch((e) => {
         setIsLoadingRegister(false);
