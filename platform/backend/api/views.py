@@ -10,7 +10,6 @@ from .worker_utils import spawn_worker_container
 from django.http import HttpResponse
 from .forms import ChallengeForm
 from .forms import ScoreForm
-# from .utils.s3_utils import upload_file_to_amazon
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from .models import Challenge
@@ -22,195 +21,206 @@ from django.http import FileResponse, Http404
 @api_view(['POST'])
 @parser_classes([MultiPartParser])
 def xai_detail(request, challenge_id):
-    # Get the XAI method file from the request
+    """
+    Process XAI method submission and calculate both EMD and IMA scores.
+    """
     form = ScoreForm(request.POST, request.FILES)
-    input_file = None
-    username = None
-    if form.is_valid():
-        input_file = form.cleaned_data['file']
-        username = form.cleaned_data['username']
+    if not form.is_valid():
+        return Response({'error': 'Invalid form submission.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    if input_file is None or username is None:
-        return Response({'error': f'error getting the input file'}, status=status.HTTP_400_BAD_REQUEST)
+    input_file = form.cleaned_data['file']
+    username = form.cleaned_data['username']
+    method_name = form.cleaned_data.get('method_name', 'Unnamed Method')
 
-    xai_method = input_file.read().decode('utf-8')
+    xai_method_code = input_file.read().decode('utf-8')
 
-    # Initialise a worker on the server that will evaluate the uploaded solution and return a score  
-    (message, score) = spawn_worker_container(uuid.uuid4().hex, challenge_id, xai_method)
+    (message, scores) = spawn_worker_container(uuid.uuid4().hex, challenge_id, xai_method_code)
 
-    # Return message in response when something went wrong while computing the score
-    if (score == None):
-        return Response({'message': message, score: None}, status=status.HTTP_200_OK)
+    if message != "success" or not scores:
+        return Response({'message': message, 'scores': None}, status=status.HTTP_200_OK)
 
-    # Store score in the database
-    serializer = ScoreSerializer(data={'score': score, 'challenge_id': challenge_id, 'username': username})
+    score_data = {
+        'challenge_id': challenge_id,
+        'username': username,
+        'method_name': method_name,
+        'status': 'completed',
+        'emd_score': scores.get('emd_score'),
+        'emd_std': scores.get('emd_std'),
+        'ima_score': scores.get('ima_score'),
+        'ima_std': scores.get('ima_std'),
+        'score': scores.get('emd_score')  # Standard-Score ist EMD
+    }
+
+    serializer = ScoreSerializer(data=score_data)
     if serializer.is_valid():
         serializer.save()
-        return Response({'message': message, 'score': serializer.data}, status=status.HTTP_201_CREATED)
+        return Response({
+            'message': 'Evaluation completed successfully',
+            'score': serializer.data
+        }, status=status.HTTP_201_CREATED)
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
 @api_view(['GET', 'POST'])
 def score_detail(request, challenge_id):
-
+    """Get or update scores for a specific challenge."""
     try:
         score = Score.objects.filter(challenge_id=challenge_id).first()
     except Score.DoesNotExist:
-        return Response(status=status.HTTP_404)
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
     if request.method == "GET":
         serializer = ScoreSerializer(score)
         return Response(serializer.data)
 
     if request.method == "POST":
-        if score:  # If a score with this challenge_id already exists
+        if score:
             serializer = ScoreSerializer(score, data=request.data)
         else:
-            # Create a new score if it doesn't exist
             serializer = ScoreSerializer(data=request.data)
 
         if serializer.is_valid():
             serializer.save()
             return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# redirect to download the dataset file associated with the challenge_id 
+@api_view(['GET'])
+def get_leaderboard(request, challenge_id):
+    """
+    Get leaderboard for a challenge with option to sort by EMD or IMA.
+    Query params: ?metric=emd or ?metric=ima (default: emd)
+    """
+    try:
+        challenge = get_object_or_404(Challenge, challenge_id=challenge_id)
+        metric = request.GET.get('metric', 'emd').lower()
+        scores = Score.objects.filter(challenge_id=challenge_id, status='completed')
+        
+        if metric == 'ima':
+            scores = scores.exclude(ima_score__isnull=True).order_by('-ima_score')
+        else:
+            scores = scores.exclude(emd_score__isnull=True).order_by('-emd_score')
+        
+        leaderboard = []
+        for rank, score in enumerate(scores, 1):
+            entry = {
+                'rank': rank,
+                'username': score.username,
+                'method_name': score.method_name or 'Unnamed Method',
+                'emd_score': score.emd_score,
+                'emd_std': score.emd_std,
+                'ima_score': score.ima_score,
+                'ima_std': score.ima_std,
+                'submitted_at': score.created_at.isoformat()
+            }
+            if metric == 'ima':
+                entry['primary_score'] = score.ima_score
+            else:
+                entry['primary_score'] = score.emd_score
+            leaderboard.append(entry)
+        
+        return Response({
+            'challenge': {'id': challenge.challenge_id, 'title': challenge.title},
+            'metric': metric,
+            'leaderboard': leaderboard
+        })
+    except Challenge.DoesNotExist:
+        return Response({'error': 'Challenge not found'}, status=status.HTTP_404_NOT_FOUND)
+
 @api_view(['GET'])
 def dataset_detail(request, challenge_id):
     try:
-        # Get the challenge by challenge_id
         challenge = get_object_or_404(Challenge, challenge_id=challenge_id)
-        
-        # Get the xaimethod file path
         dataset_file = challenge.dataset
-        
-        # Serve the xaimethod file
         if dataset_file:
             file_extension = os.path.splitext(dataset_file.name)[1]
             custom_filename = f'dataset_file{file_extension}'
-            response = FileResponse(dataset_file.open('rb'), as_attachment=True, filename=custom_filename)
-            return response
+            return FileResponse(dataset_file.open('rb'), as_attachment=True, filename=custom_filename)
         else:
             return Response({'error': 'Dataset file not found'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-# redirect to download the mlmodel file associated with the challenge_id 
 @api_view(['GET'])
 def mlmodel_detail(request, challenge_id):
     try:
-        # Get the challenge by challenge_id
         challenge = get_object_or_404(Challenge, challenge_id=challenge_id)
-        
-        # Get the xaimethod file path
         mlmodel_file = challenge.mlmodel
-        
-        # Serve the xaimethod file
         if mlmodel_file:
             file_extension = os.path.splitext(mlmodel_file.name)[1]
             custom_filename = f'mlmodel_file{file_extension}'
-            response = FileResponse(mlmodel_file.open('rb'), as_attachment=True, filename=custom_filename)
-            return response
+            return FileResponse(mlmodel_file.open('rb'), as_attachment=True, filename=custom_filename)
         else:
             return Response({'error': 'Ml Method file not found'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-# redirect to download the xaimethod file associated with the challenge_id 
 @api_view(['GET'])
 def xaimethod_detail(request, challenge_id):
     try:
-        # Get the challenge by challenge_id
         challenge = get_object_or_404(Challenge, challenge_id=challenge_id)
-        
-        # Get the xaimethod file path
         xaimethod_file = challenge.xaimethod
-        
-        # Serve the xaimethod file
         if xaimethod_file:
             file_extension = os.path.splitext(xaimethod_file.name)[1]
             custom_filename = f'xai_method_file{file_extension}'
-            response = FileResponse(xaimethod_file.open('rb'), as_attachment=True, filename=custom_filename)
-            return response
+            return FileResponse(xaimethod_file.open('rb'), as_attachment=True, filename=custom_filename)
         else:
             return Response({'error': 'XAI Method file not found'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-# POST request for creating a new challenge 
 @api_view(['POST'])
 def create_challenge(request):
     if request.method == 'POST':
-        # fetch the data from the POST request, strings and files 
         form = ChallengeForm(request.POST, request.FILES)
-
         if form.is_valid():
-            # parse the important data for new challenge creation 
-            title = form.cleaned_data['title']
-            description = form.cleaned_data['description']
-            xai_method_file = form.cleaned_data['xai_method']
-            dataset_file = form.cleaned_data['dataset']
-            mlmodel_file = form.cleaned_data['mlmodel']
-            
-            # Get creator from request data or use authenticated user
-            creator = request.user.username if request.user.is_authenticated else request.data.get('creator', None)
-
-            # generate a unique challenge_id in form of a string 
             unique_id = str(uuid.uuid4())
-
-            # Upload files to storage and get URLs
+            
+            creator = "admin"  
+            
+            if 'created_by' in request.POST:
+                creator = request.POST['created_by']
+            
+            elif hasattr(request, 'user') and request.user.is_authenticated:
+                creator = request.user.username
+            
+            elif 'X-Username' in request.headers:
+                creator = request.headers['X-Username']
+            
             new_challenge = Challenge.objects.create(
                 challenge_id=unique_id,
-                title=title,
-                description=description,
-                xaimethod=xai_method_file,
-                dataset=dataset_file,
-                mlmodel=mlmodel_file,
-                creator=creator,
+                title=form.cleaned_data['title'],
+                description=form.cleaned_data['description'],
+                created_by=creator,
+                xaimethod=form.cleaned_data['xai_method'],
+                dataset=form.cleaned_data['dataset'],
+                mlmodel=form.cleaned_data['mlmodel'],
             )
-            new_challenge.save()
-            
-            # entries in database created. 
-            return Response({"message": "Challenge created successfully"}, status = 201)
+            return Response({
+                "message": "Challenge created successfully",
+                "challenge_id": unique_id,
+                "created_by": creator
+            }, status=201)
         else: 
-            return Response({"errors":form.errors}, status=400)
+            return Response({"errors": form.errors}, status=400)
 
-
-@csrf_exempt  # Temporarily disable CSRF for testing
+@csrf_exempt
 def challenge_form_view(request):
     if request.method == 'POST':
-        # fetch the data from the POST request, strings and files 
         form = ChallengeForm(request.POST, request.FILES)
-
         if form.is_valid():
-            # parse the important data for new challenge creation 
-            title = form.cleaned_data['title']
-            description = form.cleaned_data['description']
-            xai_method_file = form.cleaned_data['xai_method']
-            dataset_file = form.cleaned_data['dataset']
-            mlmodel_file = form.cleaned_data['mlmodel']
-            # Get creator from authenticated user or form data
-            creator = request.user.username if request.user.is_authenticated else form.cleaned_data.get('creator', None)
-
-            # generate a unique challenge_id in form of a string 
             unique_id = str(uuid.uuid4())
-
-            # Upload files to storage and get URLs
-            new_challenge = Challenge.objects.create(
+            Challenge.objects.create(
                 challenge_id=unique_id,
-                title=title,
-                description=description,
-                xaimethod=xai_method_file,
-                dataset=dataset_file,
-                mlmodel=mlmodel_file,
-                creator=creator,
+                title=form.cleaned_data['title'],
+                description=form.cleaned_data['description'],
+                xaimethod=form.cleaned_data['xai_method'],
+                dataset=form.cleaned_data['dataset'],
+                mlmodel=form.cleaned_data['mlmodel'],
             )
-            new_challenge.save()
-    
-        return redirect('success')  # Redirect to a success page (create this view separately)
+            return redirect('success')
     else:
         form = ChallengeForm()
-
     return render(request, 'api/challenge_form.html', {'form': form})
 
 def success_view(request):
@@ -221,11 +231,9 @@ def get_challenge(request, challenge_id):
     try: 
         challenge = Challenge.objects.get(challenge_id=challenge_id)
         serializer = ChallengeSerializer(challenge)
-        serialized_data = serializer.data
-        return Response(serialized_data)
-    
-    except:
-        return Response({"error": "Challenge not found"}, status =404)
+        return Response(serializer.data)
+    except Challenge.DoesNotExist:
+        return Response({"error": "Challenge not found"}, status=404)
     
 @api_view(['GET'])
 def get_challenges(request):
@@ -233,34 +241,70 @@ def get_challenges(request):
     serializer = ChallengeSerializer(challenges, many=True)
     return Response(serializer.data)
 
-# upload a new score (we don't need this endpoint anymore, because xai_detail function now automatically adds the score to the database)
-# @api_view(['POST'])
-# def add_score(request):
-#     serializer = ScoreSerializer(data=request.data)
-#     if serializer.is_valid():
-#         serializer.save()
-#         return Response(serializer.data, status=status.HTTP_201_CREATED)
-#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-# fetch all scores 
 @api_view(['GET'])
 def get_scores(request): 
     scores = Score.objects.all()
     serializer = ScoreSerializer(scores, many=True)
     return Response(serializer.data)
 
-# delete a challenge
-@api_view(['DELETE'])
-def delete_challenge(request, challenge_id):
+
+@api_view(['GET'])
+def get_challenge_metadata(request, challenge_id):
+    """
+    Get challenge metadata including participant count and other info.
+    """
     try:
         challenge = get_object_or_404(Challenge, challenge_id=challenge_id)
         
-        # Optional: Check if the user has permission to delete the challenge
-        # if request.user.username != challenge.creator and not request.user.is_staff:
-        #     return Response({"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN)
+        metadata = {
+            'challenge_id': challenge.challenge_id,
+            'title': challenge.title,
+            'description': challenge.description,
+            'created_at': challenge.created_at.isoformat(),
+            'created_by': challenge.created_by,
+            'closes_on': challenge.closes_on.isoformat() if challenge.closes_on else None,
+            'participant_count': challenge.participant_count,
+        }
         
-        # Delete the challenge
+        return Response(metadata)
+    except Challenge.DoesNotExist:
+        return Response({'error': 'Challenge not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+
+@api_view(['DELETE'])
+def delete_challenge(request, challenge_id):
+    """
+    Delete a challenge. Only the creator or admin can delete a challenge.
+    """
+    try:
+        challenge = get_object_or_404(Challenge, challenge_id=challenge_id)
+        
+        current_user = None
+        
+        if 'username' in request.data:
+            current_user = request.data['username']
+        elif 'X-Username' in request.headers:
+            current_user = request.headers['X-Username']
+        elif hasattr(request, 'user') and request.user.is_authenticated:
+            current_user = request.user.username
+        
+        if not current_user:
+            return Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        if challenge.created_by != current_user and current_user != 'admin':
+            return Response({
+                'error': 'Permission denied. You can only delete your own challenges.'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        Score.objects.filter(challenge_id=challenge_id).delete()
+        
         challenge.delete()
-        return Response({"message": "Challenge deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+        
+        return Response({
+            'message': f'Challenge "{challenge.title}" deleted successfully'
+        }, status=status.HTTP_200_OK)
+        
+    except Challenge.DoesNotExist:
+        return Response({'error': 'Challenge not found'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

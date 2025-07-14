@@ -20,16 +20,19 @@ export const convertChallengeData = (c: any) => {
   const challenge = {
     ...c,
     id: c.challenge_id,
-    deadline: null,
+    deadline: c.closes_on ? new Date(c.closes_on) : null,
     createdAt: new Date(c.created_at),
     thumbnail:
       c.thumbnail ||
       "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Typical_Tetris_Game.svg/1200px-Typical_Tetris_Game.svg.png",
-    creator: c.creator || null,
-    participants: c.participants || null,
+    creator: c.created_by || "Kein Creator angegeben",
+    participants: c.participant_count || 0,
   };
   delete challenge.challenge_id;
   delete challenge.created_at;
+  delete challenge.created_by;
+  delete challenge.closes_on;
+  delete challenge.participant_count;
   return challenge;
 };
 
@@ -128,10 +131,16 @@ export const LEADERBOARD_MOCK_DATA: LeaderboardData = {
 
 export const convertScore = (score: any) => {
   return {
-    score: score["score"],
+    score: score["score"] || null,
     challengeId: score["challenge_id"],
     username: score["username"],
+    methodName: score["method_name"],
     createdAt: new Date(score["created_at"]),
+    emdScore: score["emd_score"] || null,
+    emdStd: score["emd_std"] || null,
+    imaScore: score["ima_score"] || null,
+    imaStd: score["ima_std"] || null,
+    status: score["status"] || "completed",
   };
 };
 

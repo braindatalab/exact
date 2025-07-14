@@ -11,9 +11,6 @@ axios.defaults.withCredentials = true;
 const client: AxiosInstance = axios.create({
   baseURL: BASE_URL_API,
   withCredentials: true,
-  headers: {
-    'Content-Type': 'application/json',
-  }
 });
 
 const UserContext = React.createContext<UserData | null | undefined>(null); // undefined -> user not loaded; null -> user loaded, but not signed in

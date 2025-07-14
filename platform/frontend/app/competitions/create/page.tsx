@@ -80,7 +80,7 @@ const CreateChallenge = () => {
       
       // Add creator if user is authenticated
       if (user && user.username) {
-        formData.append("creator", user.username);
+        formData.append("created_by", user.username);
       }
 
       const response = await client.post("/api/challenge/create/", formData, {
