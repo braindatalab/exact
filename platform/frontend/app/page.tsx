@@ -17,14 +17,13 @@ import {
   IconSelect,
   IconUpload,
   IconUserPlus,
-  IconChartBar,
-  IconTrophy
+  IconChartBar
 } from "@tabler/icons-react";
 
 const steps = [
   {
     step: "Create Account",
-    description: "Register with your details and company info",
+    description: "Register with your details",
     icon: <IconUserPlus />,
   },
   {
@@ -34,17 +33,17 @@ const steps = [
   },
   {
     step: "Choose Challenge",
-    description: "Pick the dataset from worker/data and a model of your choice from worker/ai_model",
+    description: "Pick a dataset and model for your XAI evaluation",
     icon: <IconAward />,
   },
   {
     step: "Upload XAI Method",
-    description: "Submit your XAI Method. For Comparison you can upload  standard XAI Methods from worker/xai_methods",
+    description: "Submit your XAI method for evaluation",
     icon: <IconUpload />,
   },
   {
     step: "Get Results",
-    description: "Receive your benchmark score calculated with emd and ima.",
+    description: "Receive benchmark scores calculated with EMD and IMA metrics",
     icon: <IconChartBar />,
   },
 ];
@@ -53,7 +52,6 @@ export default function Home() {
   return (
     <main className="flex flex-1 flex-col bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen">
       <Container size="xl" py={60}>
-        {/* Hero Section */}
         <Stack align="center" gap="xl" mb={80}>
           <div style={{ textAlign: "center" }}>
             <Title 
@@ -74,12 +72,11 @@ export default function Home() {
               </Text> 
             </Title>
             <Text size="lg">
-              Explore and participate in Explainable AI Benchmarking Challenges.
+              Explainable AI Benchmarking Platform
             </Text>
           </div>
         </Stack>
 
-        {/* How It Works Section */}
         <Stack align="center" gap="xl">
           <div style={{ textAlign: "center" }}>
             <Title order={2} mb="md">
@@ -111,7 +108,7 @@ export default function Home() {
                     <Text fw={600} size="lg" mb="xs">
                       {s.step}
                     </Text>
-                    <Text color="dimmed" size="sm">
+                    <Text c="dimmed" size="sm">
                       {s.description}
                     </Text>
                   </div>
@@ -120,7 +117,6 @@ export default function Home() {
             </SimpleGrid>
           </Paper>
 
-          {/* Final CTA */}
           <Stack align="center" gap="md" pt="xl">
             <Text size="lg" fw={500}>
               Ready to benchmark your XAI methods?
@@ -135,7 +131,7 @@ export default function Home() {
                 href="/register"
                 leftSection={<IconUserPlus />}
               >
-                Create Your Account
+                Create Account
               </Button>
               <Button
                 size="xl"
