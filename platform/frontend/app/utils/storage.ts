@@ -18,30 +18,39 @@ const defaultOptions: CookieOptions = {
 
 // Storage class to handle both cookies and localStorage
 export class Storage {
+  private static lastConsentCheck: number = 0;
+  private static lastConsentStatus: string | undefined = undefined;
+  private static readonly CHECK_INTERVAL = 1000; // 1 second
+
   private static hasConsent(): boolean {
-    const consent = Cookies.get('cookieConsent');
-    console.log('Checking cookie consent:', consent);
-    return consent === 'accepted';
+    const now = Date.now();
+    // Only check and log if enough time has passed since last check
+    if (now - this.lastConsentCheck > this.CHECK_INTERVAL) {
+      const consent = Cookies.get('cookieConsent');
+      if (consent !== this.lastConsentStatus) {
+        console.log('🍪 Cookie consent status:', consent || 'undefined');
+        this.lastConsentStatus = consent;
+      }
+      this.lastConsentCheck = now;
+      return consent === 'accepted';
+    }
+    return this.lastConsentStatus === 'accepted';
   }
 
   // Cookie methods
   static setCookie(key: string, value: any, options: CookieOptions = {}) {
     // Always allow setting the cookieConsent cookie
     if (key === 'cookieConsent') {
-      console.log('Setting cookieConsent cookie:', value);
       const mergedOptions = { ...defaultOptions, ...options };
       Cookies.set(key, typeof value === 'string' ? value : JSON.stringify(value), mergedOptions);
       return true;
     }
     
     if (this.hasConsent()) {
-      console.log('Setting cookie with consent:', key, value);
       const mergedOptions = { ...defaultOptions, ...options };
       Cookies.set(key, typeof value === 'string' ? value : JSON.stringify(value), mergedOptions);
       return true;
     }
-    
-    console.log('Blocked setting cookie (no consent):', key);
     return false;
   }
 
@@ -50,26 +59,21 @@ export class Storage {
     const value = Cookies.get(key);
     
     if (key === 'cookieConsent') {
-      console.log('Reading cookieConsent cookie:', value);
       return value;
     }
     
     if (this.hasConsent()) {
-      console.log('Reading cookie with consent:', key, value);
       try {
         return value ? JSON.parse(value) : null;
       } catch {
         return value;
       }
     }
-    
-    console.log('Blocked reading cookie (no consent):', key);
     return null;
   }
 
   static removeCookie(key: string) {
     // Always allow removing any cookie
-    console.log('Removing cookie:', key);
     Cookies.remove(key, { path: '/' });
   }
 
@@ -78,14 +82,11 @@ export class Storage {
     if (this.hasConsent()) {
       try {
         localStorage.setItem(key, JSON.stringify(value));
-        console.log('Set localStorage:', key, value);
         return true;
       } catch (error) {
-        console.error('Error saving to localStorage:', error);
         return false;
       }
     }
-    console.log('Blocked setting localStorage (no consent):', key);
     return false;
   }
 
@@ -93,24 +94,19 @@ export class Storage {
     if (this.hasConsent()) {
       try {
         const item = localStorage.getItem(key);
-        console.log('Get localStorage:', key, item);
         return item ? JSON.parse(item) : null;
       } catch (error) {
-        console.error('Error reading from localStorage:', error);
         return null;
       }
     }
-    console.log('Blocked reading localStorage (no consent):', key);
     return null;
   }
 
   static removeLocalStorage(key: string) {
     try {
       localStorage.removeItem(key);
-      console.log('Removed from localStorage:', key);
       return true;
     } catch (error) {
-      console.error('Error removing from localStorage:', error);
       return false;
     }
   }
@@ -118,10 +114,8 @@ export class Storage {
   static clearLocalStorage() {
     try {
       localStorage.clear();
-      console.log('Cleared localStorage');
       return true;
     } catch (error) {
-      console.error('Error clearing localStorage:', error);
       return false;
     }
   }
@@ -131,14 +125,11 @@ export class Storage {
     if (this.hasConsent()) {
       try {
         sessionStorage.setItem(key, JSON.stringify(value));
-        console.log('Set sessionStorage:', key, value);
         return true;
       } catch (error) {
-        console.error('Error saving to sessionStorage:', error);
         return false;
       }
     }
-    console.log('Blocked setting sessionStorage (no consent):', key);
     return false;
   }
 
@@ -146,24 +137,19 @@ export class Storage {
     if (this.hasConsent()) {
       try {
         const item = sessionStorage.getItem(key);
-        console.log('Get sessionStorage:', key, item);
         return item ? JSON.parse(item) : null;
       } catch (error) {
-        console.error('Error reading from sessionStorage:', error);
         return null;
       }
     }
-    console.log('Blocked reading sessionStorage (no consent):', key);
     return null;
   }
 
   static removeSession(key: string) {
     try {
       sessionStorage.removeItem(key);
-      console.log('Removed from sessionStorage:', key);
       return true;
     } catch (error) {
-      console.error('Error removing from sessionStorage:', error);
       return false;
     }
   }
@@ -171,10 +157,8 @@ export class Storage {
   static clearSession() {
     try {
       sessionStorage.clear();
-      console.log('Cleared sessionStorage');
       return true;
     } catch (error) {
-      console.error('Error clearing sessionStorage:', error);
       return false;
     }
   }
