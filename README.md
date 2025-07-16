@@ -8,7 +8,7 @@ We recommend Docker Desktop for managing the images and containers. (Link: https
 
 # How to run the platform:
 
-### building images
+### Building images
 
 Inside the folder containing the repository, please run the following command:
 
@@ -22,7 +22,7 @@ If you want to start all containers and the services attached to them (note: als
 
 Important: If you use Docker Desktop you need to have the app open for this to work.
 
-### running Django migrations
+### Running Django migrations
 
 When connecting to the database for the first time (e.g. after the docker volumes are created for the
 first time or deleted), you will need to create and run the migration script.
@@ -49,11 +49,11 @@ Alternatively, if you have the docker desktop app, you can follow these steps:
 
 Additionally, you can load data with:
 
-docker exec -it exact-backend-1 python manage.py loaddata /app/fixtures/full_backup.json
+`docker exec -it exact-backend-1 python manage.py loaddata /app/fixtures/full_backup.json`
 
 
 If you want to create a admin user:
-docker exec -it exact-backend-1 python manage.py createsuperuser
+`docker exec -it exact-backend-1 python manage.py createsuperuser`
 
 where you will be able to create an admin user
 

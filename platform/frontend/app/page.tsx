@@ -1,5 +1,4 @@
 "use client";
-import React from "react";
 import Link from "next/link";
 import { 
   Button, 
@@ -35,17 +34,17 @@ const steps = [
   },
   {
     step: "Choose Challenge",
-    description: "Pick a competition that matches your expertise",
+    description: "Pick the dataset from worker/data and a model of your choice from worker/ai_model",
     icon: <IconAward />,
   },
   {
     step: "Upload XAI Method",
-    description: "Submit your explainable AI solution",
+    description: "Submit your XAI Method. For Comparison you can upload  standard XAI Methods from worker/xai_methods",
     icon: <IconUpload />,
   },
   {
     step: "Get Results",
-    description: "Receive your benchmark score and analysis",
+    description: "Receive your benchmark score calculated with emd and ima.",
     icon: <IconChartBar />,
   },
 ];
