@@ -1,5 +1,4 @@
 # evalXai
-Imar
 This web application provides users with ML models and datasets, and evaluates their XAI methods.
 
 # Requirements:
@@ -46,6 +45,22 @@ Alternatively, if you have the docker desktop app, you can follow these steps:
   `python manage.py makemigrations`
 
   `python manage.py migrate`
+
+
+Additionally, you can load data with:
+
+docker exec -it exact-backend-1 python manage.py loaddata full_backup.json
+
+
+If you want to create a admin user:
+docker exec -it exact-backend-1 python manage.py createsuperuser
+
+where you will be able to create an admin user
+
+There is a Django Interface for admin users, where you can test your admin user:
+http://localhost:8000/admin
+
+
 
 ### You're done! You can now access the platform at: localhost:3000
 
