@@ -29,6 +29,30 @@
 - djangorestframework==3.14.0
 - docker==6.1.3
 
+## User Registration & Admin Approval
+
+- **Register:** `POST /register`
+- **Login:** `POST /login`
+  - If not approved, returns `403` with `{ detail: 'pending_approval' }`
+- **Admin Endpoints:**
+  - `GET /admin/pending-users/` — List users awaiting approval
+  - `POST /admin/approve-user/<user_id>/` — Approve user
+  - `POST /admin/reject-user/<user_id>/` — Reject user
+
+## Docker Usage
+
+```sh
+# Build the backend image
+cd platform/backend
+# Build the Docker image
+# (Make sure your .env is set up for DB, etc.)
+docker build -t exact-backend .
+
+# Run the backend
+# (Expose port 8000 and pass environment variables)
+docker run -p 8000:8000 --env-file .env exact-backend
+```
+
 ## Backend directory tree structure (simplified)
 ├── Dockerfile
 ├── README.md

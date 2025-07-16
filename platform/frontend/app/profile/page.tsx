@@ -1,11 +1,12 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { useUser, useUserUpdate } from "../components/UserContext"; // Korrigiere den Pfad
 import { Avatar, Text, Title, Box, Button, Divider, Tabs, TextInput, Group, Textarea } from "@mantine/core";
 import styles from "./profile.module.css"; // Importiere die CSS-Datei
+import { SessionContext } from '../contexts/SessionContext';
 
 const ProfilePage = () => {
-  const user = useUser();
+  const { user } = useContext(SessionContext);
   const updateUser = useUserUpdate();
   const [isEditing, setIsEditing] = useState(false);
   const [username, setUsername] = useState(user?.username || "Guest");
@@ -25,6 +26,8 @@ const ProfilePage = () => {
     return <Text>Loading...</Text>;
   }
 
+  const isApproved = user?.profile?.is_approved;
+
   return (
     <Box className={styles.profileContainer}>
       <Box className={styles.header}>
@@ -42,6 +45,11 @@ const ProfilePage = () => {
       <Button className={styles.editButton} onClick={handleEditClick}>
         {isEditing ? "Save your public profile" : "Edit your public profile"}
       </Button>
+      {!isApproved && (
+        <div style={{ background: '#ffeeba', color: '#856404', padding: '1em', borderRadius: '4px', marginBottom: '1em' }}>
+          Your account is awaiting admin approval. You will receive an email when approved.
+        </div>
+      )}
       <Tabs className={styles.tabs} defaultValue="about" variant="outline">
         <Tabs.List>
           <Tabs.Tab value="about">About</Tabs.Tab>

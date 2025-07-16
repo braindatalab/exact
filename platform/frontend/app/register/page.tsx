@@ -21,6 +21,7 @@ import { AUTHENTICATION_OPTIONS } from "../components/utils";
 import { AuthenticationOption } from "../components/types";
 import { useRouter } from "next/navigation";
 import { useClient, useUser, useUserUpdate } from "../components/UserContext";
+import PendingApprovalNotice from "../components/PendingApprovalNotice";
 
 const Register = () => {
   const router = useRouter();
@@ -38,9 +39,11 @@ const Register = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoadingRegister, setIsLoadingRegister] = useState(false);
+  const [pendingNotice, setPendingNotice] = useState(false);
 
   const handleRegister = () => {
     setIsLoadingRegister(true);
+    setPendingNotice(false);
     client
       .post("register", {
         username,
@@ -49,24 +52,13 @@ const Register = () => {
         password,
       })
       .then(() => {
-        client
-          .post("login", { username, email, password })
-          .then(({ data }) => {
-            const { password, ...userData } = data;
-            updateUser(userData);
-            setIsLoadingRegister(false);
-            router.push("/");
-          })
-          .catch((e) => {
-              setIsLoadingRegister(false);
-              const message = e.response?.data?.error || "An unknown registration error occurred.";
-              setAuthenticationError(message);
-        });
+        setIsLoadingRegister(false);
+        setPendingNotice(true);
       })
       .catch((e) => {
         setIsLoadingRegister(false);
         setAuthenticationError(
-          "The username or password provided is incorrect."
+          e.response?.data?.error || "The username or password provided is incorrect."
         );
       });
   };
@@ -98,6 +90,7 @@ const Register = () => {
           </Title>
           {selectedAuthenticationOption ? (
             <>
+              {pendingNotice && <PendingApprovalNotice />}
               {authenticationError && (
                 <div className="w-100">
                   <Alert
@@ -153,17 +146,18 @@ const Register = () => {
                 >
                   Back
                 </Button>
-                <Group justify="end">
+                <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
                   <Button
                     variant="filled"
                     radius="lg"
                     onClick={handleRegister}
                     disabled={!(username && password) || isLoadingRegister}
+                    style={{ opacity: 1, visibility: 'visible', display: 'inline-block' }}
                   >
                     Submit
                   </Button>
                   {isLoadingRegister && <Loader type="dots" />}
-                </Group>
+                </div>
               </Group>
             </>
           ) : (

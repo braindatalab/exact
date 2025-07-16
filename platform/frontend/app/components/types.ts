@@ -52,3 +52,30 @@ export interface DetailedScores {
     std: number | null;
   };
 }
+
+export interface UserProfile {
+  is_approved: boolean;
+  approved_at: string | null;
+  approved_by: string | null;
+  rejected_at: string | null;
+}
+
+export interface UserWithProfile {
+  id: number;
+  username: string;
+  email: string;
+  date_joined: string;
+  profile: UserProfile;
+}
+
+export type PendingApprovalUser = {
+  username: string;
+  email: string;
+  date_joined: string;
+  profile: {
+    is_approved: boolean;
+    approved_at: string | null;
+    approved_by: { username: string; email: string } | null;
+    rejected_at: string | null;
+  };
+};

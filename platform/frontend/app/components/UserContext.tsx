@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useContext, useEffect } from "react";
-import { UserData } from "./types";
+import { UserData, UserProfile } from "./types";
 import axios, { AxiosInstance } from "axios";
 import { BASE_URL_API } from "./utils";
 
@@ -12,6 +12,13 @@ const client: AxiosInstance = axios.create({
   baseURL: BASE_URL_API,
   withCredentials: true,
 });
+
+export interface User {
+  email: string;
+  username: string;
+  company_name?: string;
+  profile?: UserProfile;
+}
 
 const UserContext = React.createContext<UserData | null | undefined>(null); // undefined -> user not loaded; null -> user loaded, but not signed in
 const UserUpdateContext = React.createContext<Function>(() => {});
@@ -34,15 +41,21 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     setUser(newUser);
   };
 
-  useEffect(() => {
-    client
-      .get("/user")
-      .then(({ data }) => {
-        setUser(data.user);
-      })
-      .catch(() => {
+  const fetchUser = async () => {
+    try {
+      const response = await client.get('/user');
+      if (response.data && response.data.user) {
+        setUser(response.data.user); // user.profile will be present
+      } else {
         setUser(null);
-      });
+      }
+    } catch (error) {
+      setUser(null);
+    }
+  };
+
+  useEffect(() => {
+    fetchUser();
   }, []);
 
   return (

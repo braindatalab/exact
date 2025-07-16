@@ -75,6 +75,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+export { SessionContext };
+
 export function useSession() {
   const context = useContext(SessionContext);
   if (context === undefined) {

@@ -123,21 +123,7 @@ export default function Home() {
 
           {/* Final CTA */}
           <Stack align="center" gap="md" pt="xl">
-            <Text size="lg" fw={500}>
-              Ready to benchmark your XAI methods?
-            </Text>
             <Group gap="md">
-              <Button
-                size="xl"
-                radius="xl"
-                variant="gradient"
-                gradient={{ from: "blue", to: "cyan", deg: 90 }}
-                component={Link}
-                href="/register"
-                leftSection={<IconUserPlus />}
-              >
-                Create Your Account
-              </Button>
               <Button
                 size="xl"
                 radius="xl"

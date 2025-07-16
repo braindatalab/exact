@@ -1,8 +1,24 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model, authenticate
-from .models import Company
+from .models import Company, UserProfile
 
 UserModel = get_user_model()
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    approved_by = serializers.SerializerMethodField()
+
+    class Meta:
+        model = UserProfile
+        fields = ['is_approved', 'approved_at', 'approved_by', 'rejected_at']
+        read_only_fields = fields
+
+    def get_approved_by(self, obj):
+        if obj.approved_by:
+            return {
+                'username': obj.approved_by.username,
+                'email': obj.approved_by.email
+            }
+        return None
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     company = serializers.CharField(max_length=200, required=False, write_only=True)
@@ -33,7 +49,8 @@ class UserRegisterSerializer(serializers.ModelSerializer):
             email=validated_data['email'],
             password=validated_data['password']
         )
-        
+        # Create UserProfile (unapproved by default)
+        UserProfile.objects.create(user=user_obj, is_approved=False, approved_at=None, approved_by=None, rejected_at=None)
         if company_name and company_name.strip():
             try:
                 Company.objects.create(user=user_obj, name=company_name)
@@ -57,10 +74,10 @@ class UserLoginSerializer(serializers.Serializer):
 
 class UserSerializer(serializers.ModelSerializer):
     company_name = serializers.CharField(source='company.name', read_only=True)
-    
+    profile = UserProfileSerializer(read_only=True)
     class Meta:
         model = UserModel
-        fields = ('email', 'username', 'company_name')
+        fields = ('email', 'username', 'company_name', 'profile')
 
 class CompanySerializer(serializers.ModelSerializer):
     class Meta:

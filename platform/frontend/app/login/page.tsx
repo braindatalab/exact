@@ -23,6 +23,22 @@ import { useRouter } from "next/navigation";
 import { useUser, useUserUpdate } from "../components/UserContext";
 import { useClient } from "../components/UserContext";
 import { useSession } from "../contexts/SessionContext";
+import PendingApprovalNotice from "../components/PendingApprovalNotice";
+
+function getCookie(name: string) {
+  let cookieValue = null;
+  if (typeof document !== 'undefined' && document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
 
 const Login = () => {
   const router = useRouter();
@@ -39,30 +55,44 @@ const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoadingLogin, setIsLoadingLogin] = useState<boolean>(false);
+  const [pendingApproval, setPendingApproval] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     setIsLoadingLogin(true);
-    client
-      .post(`/login`, {
+    setPendingApproval(false);
+    setAuthenticationError(null);
+    try {
+      const res = await client.post(`/login`, {
         username,
         email: `${username}@mail.de`,
         password,
-      })
-      .then(({ data }) => {
-        const { password: _, ...userData } = data;
-        console.log('Login successful:', userData);
-        updateUser(userData);
-        setSession(userData);
-        setIsLoadingLogin(false);
-        router.push("/");
-      })
-      .catch((e) => {
-        console.error('Login error:', e);
-        setIsLoadingLogin(false);
-        setAuthenticationError(
-          "The username or password provided is incorrect."
-        );
       });
+      const { password: _, ...userData } = res.data;
+      updateUser(userData);
+      setSession(userData);
+      setIsLoadingLogin(false);
+      router.push("/");
+    } catch (e) {
+      setIsLoadingLogin(false);
+      let errorMsg = "The username or password provided is incorrect.";
+      let isPending = false;
+      if (e?.response?.data) {
+        if (e.response.data.detail === 'pending_approval') {
+          isPending = true;
+        } else if (e.response.data.detail) {
+          errorMsg = e.response.data.detail;
+        }
+      } else if (e?.message && e.message.includes('Network')) {
+        errorMsg = 'Cannot connect to server. Please try again later.';
+      }
+      if (isPending) {
+        setPendingApproval(true);
+        setAuthenticationError(null);
+      } else {
+        setAuthenticationError(errorMsg);
+      }
+    }
   };
 
   useEffect(() => {
@@ -91,7 +121,7 @@ const Login = () => {
             {selectedAuthenticationOption ? "Sign In" : "Welcome!"}
           </Title>
           {selectedAuthenticationOption ? (
-            <>
+            <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {authenticationError && (
                 <div className="w-100">
                   <Alert
@@ -106,6 +136,10 @@ const Login = () => {
                     {authenticationError}
                   </Alert>
                 </div>
+              )}
+              {pendingApproval && <PendingApprovalNotice />}
+              {error && !pendingApproval && (
+                <div style={{ color: 'red', marginBottom: '1em' }}>{error}</div>
               )}
               <TextInput
                 label="Username"
@@ -140,22 +174,24 @@ const Login = () => {
                     setSelectedAuthenticationOption(null);
                     setAuthenticationError(null);
                   }}
+                  type="button"
                 >
                   Back
                 </Button>
                 <Group justify="end">
                   <Button
+                    type="submit"
                     variant="filled"
                     radius="lg"
-                    onClick={handleLogin}
-                    disabled={!(username && password) || isLoadingLogin}
+                    style={{ background: '#2563eb', color: 'white', padding: '0.75em 2em', border: 'none', borderRadius: '4px', fontSize: '1rem', cursor: 'pointer', marginTop: '20px' }}
+                    disabled={isLoadingLogin}
                   >
-                    Submit
+                    Login
                   </Button>
                   {isLoadingLogin && <Loader type="dots" />}
                 </Group>
               </Group>
-            </>
+            </form>
           ) : (
             <>
               {AUTHENTICATION_OPTIONS.map((o, i) => (
