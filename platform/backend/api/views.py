@@ -17,6 +17,8 @@ from django.shortcuts import render, redirect
 from django.shortcuts import get_object_or_404
 from os.path import splitext
 from django.http import FileResponse, Http404
+from .security import SecurityValidator
+from django.core.exceptions import ValidationError
 
 @api_view(['POST'])
 @parser_classes([MultiPartParser])
@@ -29,6 +31,11 @@ def xai_detail(request, challenge_id):
         return Response({'error': 'Invalid form submission.'}, status=status.HTTP_400_BAD_REQUEST)
 
     input_file = form.cleaned_data['file']
+    try:
+        SecurityValidator.validate_xai_method(input_file)
+    except ValidationError as e:
+        return Response({'error': f'Security validation failed: {str(e)}'}, status=400)
+    
     username = form.cleaned_data['username']
     method_name = form.cleaned_data.get('method_name', 'Unnamed Method')
 
@@ -48,7 +55,7 @@ def xai_detail(request, challenge_id):
         'emd_std': scores.get('emd_std'),
         'ima_score': scores.get('ima_score'),
         'ima_std': scores.get('ima_std'),
-        'score': scores.get('emd_score')  # Standard-Score ist EMD
+        'score': scores.get('emd_score')  # default score is EMD
     }
 
     serializer = ScoreSerializer(data=score_data)
