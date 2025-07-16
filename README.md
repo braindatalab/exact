@@ -49,7 +49,7 @@ Alternatively, if you have the docker desktop app, you can follow these steps:
 
 Additionally, you can load data with:
 
-docker exec -it exact-backend-1 python manage.py loaddata full_backup.json
+docker exec -it exact-backend-1 python manage.py loaddata /app/fixtures/full_backup.json
 
 
 If you want to create a admin user:
