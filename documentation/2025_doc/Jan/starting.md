@@ -41,6 +41,9 @@ This will spin up:
 
 Wait ~30 s for Postgres and Django to come up, then:
 
+* The following two get done automatically when you run
+`docker compose up --build`.
+
 ```bash
 docker ps  # to find your backend container
 docker exec -it exact-backend-1 python manage.py makemigrations
@@ -57,8 +60,8 @@ docker exec -it exact-backend-1 python manage.py createsuperuser
 
 ## 5. Verify the UI & Admin
 
-- Frontend: http://localhost:3000  
-- Admin Panel: http://localhost:8000/admin  
+- Frontend: http://localhost:3000
+- Admin Panel: http://localhost:8000/admin
 - Log in using your superuser account
 
 ---
@@ -144,10 +147,10 @@ This will test:
 
 ## If All Pass, Then:
 
-✅ Database is working  
-✅ Django APIs function  
-✅ Frontend renders content  
-✅ Worker runs models + scores  
+✅ Database is working
+✅ Django APIs function
+✅ Frontend renders content
+✅ Worker runs models + scores
 ✅ End-to-end method upload + scoring works
 
 ---

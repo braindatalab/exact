@@ -7,6 +7,7 @@ The key takeaway is that you **never need to write SQL manually** to create the 
 ---
 
 ## Core Concept: Where Does the Structure Come From?
+* This gets done automatically when you run `docker compose up --build`.
 
 The "master plan" or "blueprint" for our database structure lives inside our Django project's code.
 
@@ -97,4 +98,4 @@ If you want your new database (either local or production) to have some initial 
         docker exec exact-backend-1 python /app/manage.py loaddata db_backup.json
         ```
 
-This will load all the data from the JSON file into your newly structured database. 
+This will load all the data from the JSON file into your newly structured database.

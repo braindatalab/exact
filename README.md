@@ -23,6 +23,7 @@ If you want to start all containers and the services attached to them (note: als
 Important: If you use Docker Desktop you need to have the app open for this to work.
 
 ### Running Django migrations
+* This gets done automatically when you run `docker compose up --build`.
 
 When connecting to the database for the first time (e.g. after the docker volumes are created for the
 first time or deleted), you will need to create and run the migration script.

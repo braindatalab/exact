@@ -54,4 +54,4 @@ EXPOSE 8000
 
 # Run the application.
 ENTRYPOINT ["python", "manage.py"]
-CMD ["runserver", "0.0.0.0:8000"]
+CMD ["migrate_runserver", "0.0.0.0:8000"]
