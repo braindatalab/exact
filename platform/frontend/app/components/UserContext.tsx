@@ -13,6 +13,17 @@ const client: AxiosInstance = axios.create({
   withCredentials: true,
 });
 
+// Utility function to get CSRF token
+export const getCSRFToken = async (): Promise<string | null> => {
+  try {
+    const response = await axios.get(`${BASE_URL_API}/csrf/`, { withCredentials: true });
+    return response.data.csrfToken;
+  } catch (error) {
+    console.warn('Failed to fetch CSRF token:', error);
+    return null;
+  }
+};
+
 const UserContext = React.createContext<UserData | null | undefined>(null); // undefined -> user not loaded; null -> user loaded, but not signed in
 const UserUpdateContext = React.createContext<Function>(() => {});
 const ClientContext = React.createContext<AxiosInstance>(axios.create());

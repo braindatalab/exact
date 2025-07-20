@@ -4,7 +4,18 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from .serializers import UserRegisterSerializer, UserLoginSerializer, UserSerializer
 from rest_framework import permissions, status
+from django.middleware.csrf import get_token
+from django.views.decorators.csrf import ensure_csrf_cookie
+from django.utils.decorators import method_decorator
 # from .validations import custom_validation, validate_email, validate_password
+
+
+class CSRFTokenView(APIView):
+	permission_classes = (permissions.AllowAny,)
+
+	@method_decorator(ensure_csrf_cookie)
+	def get(self, request):
+		return Response({'csrfToken': get_token(request)})
 
 
 class UserRegister(APIView):
@@ -33,7 +44,7 @@ class UserLogin(APIView):
 		if serializer.is_valid(raise_exception=True):
 			user = serializer.check_user(data)
 			login(request, user)
-			return Response(serializer.data, status=status.HTTP_200_OK) # Status nicht immer 200 
+			return Response(serializer.data, status=status.HTTP_200_OK) # Status nicht immer 200
 
 
 class UserLogout(APIView):

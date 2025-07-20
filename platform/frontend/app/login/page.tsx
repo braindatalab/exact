@@ -21,7 +21,7 @@ import { AUTHENTICATION_OPTIONS } from "../components/utils";
 import { AuthenticationOption } from "../components/types";
 import { useRouter } from "next/navigation";
 import { useUser, useUserUpdate } from "../components/UserContext";
-import { useClient } from "../components/UserContext";
+import { useClient, getCSRFToken } from "../components/UserContext";
 import { useSession } from "../contexts/SessionContext";
 
 const Login = () => {
@@ -40,29 +40,34 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [isLoadingLogin, setIsLoadingLogin] = useState<boolean>(false);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     setIsLoadingLogin(true);
-    client
-      .post(`/login`, {
+
+    try {
+      // Get CSRF token before login
+      const csrfToken = await getCSRFToken();
+
+      const { data } = await client.post(`/login`, {
         username,
         email: `${username}@mail.de`,
         password,
-      })
-      .then(({ data }) => {
-        const { password: _, ...userData } = data;
-        console.log('Login successful:', userData);
-        updateUser(userData);
-        setSession(userData);
-        setIsLoadingLogin(false);
-        router.push("/");
-      })
-      .catch((e) => {
-        console.error('Login error:', e);
-        setIsLoadingLogin(false);
-        setAuthenticationError(
-          "The username or password provided is incorrect."
-        );
+      }, {
+        headers: csrfToken ? { 'X-CSRFToken': csrfToken } : {}
       });
+
+      const { password: _, ...userData } = data;
+      console.log('Login successful:', userData);
+      updateUser(userData);
+      setSession(userData);
+      setIsLoadingLogin(false);
+      router.push("/");
+    } catch (e: any) {
+      console.error('Login error:', e);
+      setIsLoadingLogin(false);
+      setAuthenticationError(
+        "The username or password provided is incorrect."
+      );
+    }
   };
 
   useEffect(() => {

@@ -20,7 +20,7 @@ import NextImage from "next/image";
 import { AUTHENTICATION_OPTIONS } from "../components/utils";
 import { AuthenticationOption } from "../components/types";
 import { useRouter } from "next/navigation";
-import { useClient, useUser, useUserUpdate } from "../components/UserContext";
+import { useClient, useUser, useUserUpdate, getCSRFToken } from "../components/UserContext";
 
 const Register = () => {
   const router = useRouter();
@@ -39,36 +39,44 @@ const Register = () => {
   const [password, setPassword] = useState("");
   const [isLoadingRegister, setIsLoadingRegister] = useState(false);
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     setIsLoadingRegister(true);
-    client
-      .post("register", {
+
+    try {
+      // First, get CSRF token
+      const csrfToken = await getCSRFToken();
+
+      // Register the user
+      await client.post("register", {
         username,
         company,
         email,
         password,
-      })
-      .then(() => {
-        client
-          .post("login", { username, email, password })
-          .then(({ data }) => {
-            const { password, ...userData } = data;
-            updateUser(userData);
-            setIsLoadingRegister(false);
-            router.push("/");
-          })
-          .catch((e) => {
-              setIsLoadingRegister(false);
-              const message = e.response?.data?.error || "An unknown registration error occurred.";
-              setAuthenticationError(message);
-        });
-      })
-      .catch((e) => {
-        setIsLoadingRegister(false);
-        setAuthenticationError(
-          "The username or password provided is incorrect."
-        );
+      }, {
+        headers: csrfToken ? { 'X-CSRFToken': csrfToken } : {}
       });
+
+      // Get a fresh CSRF token for login
+      const loginCsrfToken = await getCSRFToken();
+
+      // Then login
+      const { data } = await client.post("login", {
+        username,
+        email,
+        password
+      }, {
+        headers: loginCsrfToken ? { 'X-CSRFToken': loginCsrfToken } : {}
+      });
+
+      const { password: _, ...userData } = data;
+      updateUser(userData);
+      setIsLoadingRegister(false);
+      router.push("/");
+    } catch (e: any) {
+      setIsLoadingRegister(false);
+      const message = e.response?.data?.error || "An unknown registration error occurred.";
+      setAuthenticationError(message);
+    }
   };
 
   useEffect(() => {
