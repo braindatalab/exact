@@ -77,9 +77,6 @@ const ProfilePage = () => {
                   <Text size="lg" className={styles.userInfo}><strong>Vorname:</strong> {"Max"}</Text>
                 </Group>
                 <Group align="center" mt="sm">
-                  <Text size="lg" className={styles.userInfo}><strong>Username:</strong> {"Mustermann"}</Text>
-                </Group>
-                <Group align="center" mt="sm">
                   <Text size="lg" className={styles.userInfo}><strong>Username:</strong> {username}</Text>
                 </Group>
                 <Group align="center" mt="sm">
