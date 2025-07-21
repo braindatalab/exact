@@ -1,10 +1,10 @@
 "use client";
 import Link from "next/link";
-import { 
-  Button, 
-  Paper, 
-  Text, 
-  Title, 
+import {
+  Button,
+  Paper,
+  Text,
+  Title,
   Container,
   Group,
   Stack,
@@ -19,15 +19,16 @@ import {
   IconUserPlus,
   IconChartBar
 } from "@tabler/icons-react";
+import { useUser } from "./components/UserContext";
 
 const steps = [
   {
-    step: "Create Account",
-    description: "Register with your details",
+    step: "Sign Up",
+    description: "Register with your details or sign in to your account",
     icon: <IconUserPlus />,
   },
   {
-    step: "Browse Competitions", 
+    step: "Browse Competitions",
     description: "Select from available XAI benchmarking challenges",
     icon: <IconSelect />,
   },
@@ -49,14 +50,16 @@ const steps = [
 ];
 
 export default function Home() {
+  const user = useUser();
+
   return (
     <main className="flex flex-1 flex-col bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen">
       <Container size="xl" py={60}>
         <Stack align="center" gap="xl" mb={80}>
           <div style={{ textAlign: "center" }}>
-            <Title 
-              order={1} 
-              size="4rem" 
+            <Title
+              order={1}
+              size="4rem"
               fw={700}
               mb="md"
             >
@@ -68,8 +71,8 @@ export default function Home() {
                 component="span"
                 gradient={{ from: "blue", to: "cyan", deg: 90 }}
               >
-                evalXAI 
-              </Text> 
+                evalXAI
+              </Text>
             </Title>
             <Text size="lg">
               Explainable AI Benchmarking Platform
@@ -96,9 +99,9 @@ export default function Home() {
                   >
                     {s.icon}
                   </ThemeIcon>
-                  <Badge 
-                    variant="light" 
-                    color="blue" 
+                  <Badge
+                    variant="light"
+                    color="blue"
                     size="lg"
                     radius="xl"
                   >
@@ -122,17 +125,20 @@ export default function Home() {
               Ready to benchmark your XAI methods?
             </Text>
             <Group gap="md">
-              <Button
-                size="xl"
-                radius="xl"
-                variant="gradient"
-                gradient={{ from: "blue", to: "cyan", deg: 90 }}
-                component={Link}
-                href="/register"
-                leftSection={<IconUserPlus />}
-              >
-                Create Account
-              </Button>
+              {/* Only show Create Account button if user is not logged in */}
+              {user === null && (
+                <Button
+                  size="xl"
+                  radius="xl"
+                  variant="gradient"
+                  gradient={{ from: "blue", to: "cyan", deg: 90 }}
+                  component={Link}
+                  href="/register"
+                  leftSection={<IconUserPlus />}
+                >
+                  Create Account
+                </Button>
+              )}
               <Button
                 size="xl"
                 radius="xl"
