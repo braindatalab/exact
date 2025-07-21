@@ -30,21 +30,22 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+# CORS Settings - Cross-Origin Resource Sharing for frontend communication
 CORS_ALLOWED_ORIGINS = [
-  'http://localhost:3000',
-  'http://127.0.0.1:3000'
+  'http://localhost:3000',   # Next.js development server
+  'http://127.0.0.1:3000'    # Alternative localhost format
 ]
 
-CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_CREDENTIALS = True  # Essential for session-based authentication
 
-# CSRF Settings
+# CSRF Settings - Cross-Site Request Forgery protection
 CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:3000',
-    'http://127.0.0.1:3000'
+    'http://localhost:3000',  # Frontend development server
+    'http://127.0.0.1:3000'   # Alternative localhost format
 ]
 
-CSRF_COOKIE_HTTPONLY = False
-CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_HTTPONLY = False  # Allows JavaScript to read CSRF token for API requests
+CSRF_COOKIE_SAMESITE = 'Lax'  # Balanced security - prevents CSRF while allowing normal navigation
 
 
 # Application definition
@@ -156,6 +157,17 @@ DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 MEDIA_URL = '/media/'
 
 STATIC_URL = '/static/'
+
+# Session Configuration
+# These settings are essential for user authentication and session management
+SESSION_COOKIE_AGE = 86400  # 24 hours - How long sessions last before expiring
+SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS - Controls if cookie sent over HTTPS only
+SESSION_COOKIE_HTTPONLY = True  # Prevents JavaScript access to session cookie (XSS protection)
+SESSION_COOKIE_SAMESITE = 'Lax'  # CSRF protection - prevents cross-site request inclusion
+SESSION_COOKIE_PATH = '/'  # Cookie available for entire domain
+SESSION_COOKIE_DOMAIN = None  # Use default domain - allows flexibility across environments
+SESSION_SAVE_EVERY_REQUEST = True  # Updates session expiry on each request to keep active users logged in
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Sessions persist after browser close (within AGE limit)
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [

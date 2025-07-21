@@ -56,11 +56,17 @@ class UserLoginSerializer(serializers.Serializer):
         return user
 
 class UserSerializer(serializers.ModelSerializer):
-    company_name = serializers.CharField(source='company.name', read_only=True)
+    company_name = serializers.SerializerMethodField()
     
     class Meta:
         model = UserModel
         fields = ('email', 'username', 'company_name')
+    
+    def get_company_name(self, obj):
+        try:
+            return obj.company.name if hasattr(obj, 'company') and obj.company else None
+        except Company.DoesNotExist:
+            return None
 
 class CompanySerializer(serializers.ModelSerializer):
     class Meta:

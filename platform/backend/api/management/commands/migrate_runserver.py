@@ -29,9 +29,24 @@ class Command(BaseCommand):
         # Run migrations first (unless skipped)
         if not options['skip_migrations']:
             self.stdout.write(
-                self.style.SUCCESS('Running database migrations...')
+                self.style.SUCCESS('Creating new migrations if needed...')
             )
             try:
+                # First create any new migrations
+                call_command('makemigrations', verbosity=options['verbosity'])
+                self.stdout.write(
+                    self.style.SUCCESS('Makemigrations completed.')
+                )
+            except Exception as e:
+                self.stdout.write(
+                    self.style.WARNING(f'Makemigrations warning: {e}')
+                )
+            
+            self.stdout.write(
+                self.style.SUCCESS('Applying database migrations...')
+            )
+            try:
+                # Then apply all migrations
                 call_command('migrate', verbosity=options['verbosity'])
                 self.stdout.write(
                     self.style.SUCCESS('Database migrations completed successfully.')
