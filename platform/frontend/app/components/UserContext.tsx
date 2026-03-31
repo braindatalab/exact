@@ -36,7 +36,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     client
-      .get("/user")
+      .get("user")
       .then(({ data }) => {
         setUser(data.user);
       })

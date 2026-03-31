@@ -15,7 +15,7 @@ import {
 } from "@mantine/core";
 import { IconArrowLeft, IconExclamationCircle } from "@tabler/icons-react";
 import Link from "next/link";
-import logo from "../components/evalXAI_logo.png";
+import logo from "@/public/logo_ptb.png";
 import NextImage from "next/image";
 import { AUTHENTICATION_OPTIONS } from "../components/utils";
 import { AuthenticationOption } from "../components/types";
@@ -63,8 +63,9 @@ const Register = () => {
       })
       .catch((e) => {
         setIsLoadingRegister(false);
+        const errorMessage = e.response?.data?.error || e.message;
         setAuthenticationError(
-          "The username or password provided is incorrect."
+          `Registration failed: ${errorMessage || "The server is currently unavailable."}`
         );
       });
   };

@@ -43,7 +43,7 @@ const Header = () => {
   };
 
   const handleLogout = () => {
-    client.post("/logout", user).then(() => {
+    client.post("logout", user).then(() => {
       updateUser(null);
       clearSession();
     }).catch((error) => {
@@ -58,24 +58,24 @@ const Header = () => {
   }
 
   return (
-    <header className="bg-gray-800 text-white">
+    <header className="bg-white text-ptbDarkBlue border-b border-gray-200 shadow-sm">
       <Group justify="space-between" align="center" px={100} py="xs">
         <Group gap="lg">
           <Burger
             opened={isSidebarOpen}
             onClick={toggleSidebar}
-            color="white"
+            color="#007198"
           />
           <Group gap={5}>
             {smallScreen ? (
-              <Text component={Link} href="/" size="xl">
-                evalXAI
+              <Text component={Link} href="/" size="xl" fw={700} c="ptbDarkBlue">
+                EXACT
               </Text>
             ) : (
               <>
-                <Text component={Link} href="/" size="xl">
-                  evalXAI: Explainable AI Benchmarking Platform{" "}
-                  <Text inherit span c="gray">
+                <Text component={Link} href="/" size="xl" fw={700} c="ptbDarkBlue">
+                  EXACT: Explainable AI Comparison Toolkit{" "}
+                  <Text inherit span c="dimmed" fw={400}>
                     hosted by
                   </Text>
                 </Text>

@@ -89,7 +89,7 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
 
   useEffect(() => {
     client
-      .get(`/api/challenge/${params.challengeId}`)
+      .get(`api/challenge/${params.challengeId}`)
       .then(({ data }) => {
         setChallenge(convertChallengeData(data));
       })
@@ -134,7 +134,7 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
     const finalMethodName = methodName?.trim() || defaultMethodName;
     formData.append("method_name", finalMethodName);
     client
-      .post(`/api/xai/${challenge.id}/`, formData)
+      .post(`api/xai/${challenge.id}`, formData)
       .then((res) => {
         const { message, score, detailed_scores }: { 
           message: string; 
@@ -341,7 +341,7 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
                 fullWidth
                 variant="light"
                 component="a"
-                href={`http://localhost:8000/api/dataset/${challenge.id}`}
+                href={`${BASE_URL_API}/api/dataset/${challenge.id}`}
               >
                 Download Dataset
               </Button>
@@ -351,7 +351,7 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
                 fullWidth
                 variant="light"
                 component="a"
-                href={`http://localhost:8000/api/xaimethod/${challenge.id}`}
+                href={`${BASE_URL_API}/api/xaimethod/${challenge.id}`}
               >
                 Download XAI Method Template
               </Button>
@@ -361,7 +361,7 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
                 fullWidth
                 variant="light"
                 component="a"
-                href={`http://localhost:8000/api/mlmodel/${challenge.id}`}
+                href={`${BASE_URL_API}/api/mlmodel/${challenge.id}`}
               >
                 Download ML Model
               </Button>

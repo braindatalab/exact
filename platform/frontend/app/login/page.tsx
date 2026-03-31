@@ -15,7 +15,7 @@ import {
 } from "@mantine/core";
 import { IconArrowLeft, IconExclamationCircle } from "@tabler/icons-react";
 import Link from "next/link";
-import logo from "../components/evalXAI_logo.png";
+import logo from "@/public/logo_ptb.png";
 import NextImage from "next/image";
 import { AUTHENTICATION_OPTIONS } from "../components/utils";
 import { AuthenticationOption } from "../components/types";
@@ -43,7 +43,7 @@ const Login = () => {
   const handleLogin = () => {
     setIsLoadingLogin(true);
     client
-      .post(`/login`, {
+      .post(`login`, {
         username,
         email: `${username}@mail.de`,
         password,
@@ -59,8 +59,9 @@ const Login = () => {
       .catch((e) => {
         console.error('Login error:', e);
         setIsLoadingLogin(false);
+        const errorMessage = e.response?.data?.error || e.message;
         setAuthenticationError(
-          "The username or password provided is incorrect."
+          `Login failed: ${errorMessage || "The server is currently unavailable."}`
         );
       });
   };

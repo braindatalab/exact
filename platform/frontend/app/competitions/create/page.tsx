@@ -27,6 +27,7 @@ const CreateChallenge = () => {
   const [dataset, setDataset] = useState<File | null>(null);
   const [mlmodel, setMlmodel] = useState<File | null>(null);
   const [xaiMethod, setXaiMethod] = useState<File | null>(null);
+  const [thumbnail, setThumbnail] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
@@ -34,6 +35,7 @@ const CreateChallenge = () => {
   const datasetInputRef = useRef<HTMLInputElement | null>(null);
   const mlmodelInputRef = useRef<HTMLInputElement | null>(null);
   const xaiMethodInputRef = useRef<HTMLInputElement | null>(null);
+  const thumbnailInputRef = useRef<HTMLInputElement | null>(null);
 
   // Custom file change handler
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>, setter: React.Dispatch<React.SetStateAction<File | null>>) => {
@@ -77,13 +79,16 @@ const CreateChallenge = () => {
       formData.append("dataset", dataset);
       formData.append("mlmodel", mlmodel);
       formData.append("xai_method", xaiMethod);
+      if (thumbnail) {
+        formData.append("thumbnail", thumbnail);
+      }
       
       // Add creator if user is authenticated
       if (user && user.username) {
         formData.append("creator", user.username);
       }
 
-      const response = await client.post("/api/challenge/create/", formData, {
+      const response = await client.post("api/challenge/create", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -234,12 +239,21 @@ const CreateChallenge = () => {
               accept=".py,.ipynb,.txt,text/plain,text/python,application/x-python"
             />
 
+            <CustomFileInput
+              label="Thumbnail (Optional)"
+              description="Laden Sie ein Bild für die Challenge hoch. (Standard: Tetris Image)"
+              inputRef={thumbnailInputRef}
+              value={thumbnail}
+              onChange={(e) => handleFileChange(e, setThumbnail)}
+              onClear={() => clearFileInput(thumbnailInputRef, setThumbnail)}
+              accept="image/png, image/jpeg, image/jpg"
+            />
+
             <Group justify="center" mt="lg">
               <Button
                 type="submit"
                 size="md"
-                variant="gradient"
-                gradient={{ from: "blue", to: "cyan", deg: 90 }}
+                color="ptbBlue.5"
                 loading={isLoading}
               >
                 Create Challenge

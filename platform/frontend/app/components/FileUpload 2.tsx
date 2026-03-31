@@ -5,6 +5,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import { Dropzone } from '@mantine/dropzone';
 import { Text, Group } from '@mantine/core';
 import { IconUpload, IconX, IconFile } from '@tabler/icons-react';
+import { BASE_URL_API } from "./utils";
 
 export const FileUpload = () => {
   const [uploadStatus, setUploadStatus] = useState<string>("");
@@ -22,7 +23,7 @@ export const FileUpload = () => {
       setIsLoading(true);
 
       try {
-        await axios.post("http://localhost:8000/api/xai/f85f311b-9997-429b-9b08-5397140174ed/", formData, {});
+        await axios.post(`${BASE_URL_API}/api/xai/f85f311b-9997-429b-9b08-5397140174ed/`, formData, {});
         setUploadStatus(`✅ File uploaded successfully`);
         setIsUploadSuccessful(true);
         setScore(null);
@@ -40,7 +41,7 @@ export const FileUpload = () => {
 
   const handleGetScoreClick = async () => {
     try {
-      const response = await axios.get("http://localhost:8000/api/score/1/");
+      const response = await axios.get(`${BASE_URL_API}/api/score/1/`);
       setScore(`Score: ${response.data.score}`);
       setError(null);
     } catch (error) {

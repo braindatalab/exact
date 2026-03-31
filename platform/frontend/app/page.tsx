@@ -1,18 +1,21 @@
 "use client";
 import React from "react";
 import Link from "next/link";
-import { 
-  Button, 
-  Paper, 
-  Text, 
-  Title, 
+import {
+  Button,
+  Paper,
+  Text,
+  Title,
   Container,
   Group,
   Stack,
   Badge,
   ThemeIcon,
-  SimpleGrid
+  SimpleGrid,
+  Image
 } from "@mantine/core";
+import logo_ptb from "@/public/logo_ptb.png";
+import NextImage from "next/image";
 import {
   IconAward,
   IconSelect,
@@ -29,7 +32,7 @@ const steps = [
     icon: <IconUserPlus />,
   },
   {
-    step: "Browse Competitions", 
+    step: "Browse Competitions",
     description: "Select from available XAI benchmarking challenges",
     icon: <IconSelect />,
   },
@@ -56,23 +59,33 @@ export default function Home() {
       <Container size="xl" py={60}>
         {/* Hero Section */}
         <Stack align="center" gap="xl" mb={80}>
+          {/* <Image
+            component={NextImage}
+            src={logo_ptb}
+            h={80}
+            w="auto"
+            alt="Logo Physikalisch-Technische Bundesanstalt"
+            mb="xl"
+          /> */}
           <div style={{ textAlign: "center" }}>
-            <Title 
-              order={1} 
-              size="4rem" 
+            <Title
+              order={1}
+              size="4rem"
               fw={700}
               mb="md"
             >
               Welcome to{" "}
               <Text
                 fw={900}
-                variant="gradient"
+                c="ptbBlue.5"
                 inherit
                 component="span"
-                gradient={{ from: "blue", to: "cyan", deg: 90 }}
               >
-                evalXAI 
-              </Text> 
+                EXACT
+              </Text>
+            </Title>
+            <Title order={2} size="1.5rem" fw={500} c="dimmed" mb="lg">
+              Explainable AI Comparison Toolkit
             </Title>
             <Text size="lg">
               Explore and participate in Explainable AI Benchmarking Challenges.
@@ -95,14 +108,13 @@ export default function Home() {
                   <ThemeIcon
                     size={60}
                     radius="xl"
-                    variant="gradient"
-                    gradient={{ from: "blue", to: "cyan", deg: 90 }}
+                    color="ptbBlue.5"
                   >
                     {s.icon}
                   </ThemeIcon>
-                  <Badge 
-                    variant="light" 
-                    color="blue" 
+                  <Badge
+                    variant="light"
+                    color="ptbBlue.5"
                     size="lg"
                     radius="xl"
                   >
@@ -130,8 +142,7 @@ export default function Home() {
               <Button
                 size="xl"
                 radius="xl"
-                variant="gradient"
-                gradient={{ from: "blue", to: "cyan", deg: 90 }}
+                color="ptbBlue.5"
                 component={Link}
                 href="/register"
                 leftSection={<IconUserPlus />}
@@ -141,7 +152,8 @@ export default function Home() {
               <Button
                 size="xl"
                 radius="xl"
-                variant="light"
+                variant="outline"
+                color="ptbBlue.5"
                 component={Link}
                 href="/competitions"
                 leftSection={<IconSelect />}

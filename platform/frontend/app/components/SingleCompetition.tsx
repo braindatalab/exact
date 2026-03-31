@@ -6,6 +6,7 @@ import { Button } from "@mui/material";
 import axios from "axios";
 import TetrisImage from "../../public/TetrisImage.png";
 import Image from "next/image";
+import { BASE_URL_API } from "./utils";
 interface SingleCompetitionProps {
   competitionName: string;
 }
@@ -15,7 +16,7 @@ export const SingleCompetition = (props: SingleCompetitionProps) => {
     const challengeId = 1;
     try {
       const response = await axios.get(
-        `localhost:8000/api/dataset/${challengeId}/`,
+        `${BASE_URL_API}/api/dataset/${challengeId}/`,
         { responseType: "blob" }
       );
       const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -54,7 +55,7 @@ export const SingleCompetition = (props: SingleCompetitionProps) => {
               stored in a database.
             </p>
             <div className="mt-5 flex justify-center">
-              <a href="http://localhost:8000/api/mlmodel/f85f311b-9997-429b-9b08-5397140174ed/">
+              <a href={`${BASE_URL_API}/api/mlmodel/f85f311b-9997-429b-9b08-5397140174ed/`}>
                 <Button
                   variant="contained"
                   color="primary"
@@ -63,7 +64,7 @@ export const SingleCompetition = (props: SingleCompetitionProps) => {
                   Download ML Model
                 </Button>
               </a>
-              <a href="http://localhost:8000/api/dataset/f85f311b-9997-429b-9b08-5397140174ed/">
+              <a href={`${BASE_URL_API}/api/dataset/f85f311b-9997-429b-9b08-5397140174ed/`}>
                 <Button
                   variant="contained"
                   color="primary"
@@ -72,7 +73,7 @@ export const SingleCompetition = (props: SingleCompetitionProps) => {
                   Download Dataset
                 </Button>
               </a>
-              <a href="http://localhost:8000/api/xaimethod/f85f311b-9997-429b-9b08-5397140174ed/">
+              <a href={`${BASE_URL_API}/api/xaimethod/f85f311b-9997-429b-9b08-5397140174ed/`}>
                 <Button
                   variant="contained"
                   color="primary"

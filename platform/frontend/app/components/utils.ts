@@ -6,11 +6,11 @@ import {
   IconFileSpreadsheet,
 } from "@tabler/icons-react";
 
-export const BASE_URL_API = "http://localhost:8000";
+export const BASE_URL_API = typeof window !== 'undefined' ? '/backend' : "http://backend:8000";
 
-export const NO_HEADER_PAGES = ["/login", "/register"]; // pages where the header should be hidden
+export const NO_HEADER_PAGES: string[] = []; // pages where the header should be hidden
 
-export const NO_FOOTER_PAGES = ["/login", "/register"]; // pages where the footer should be hidden
+export const NO_FOOTER_PAGES: string[] = []; // pages where the footer should be hidden
 
 export const AUTHENTICATION_OPTIONS: Array<AuthenticationOption> = [
   { name: "Email", icon: IconMail },
@@ -23,8 +23,8 @@ export const convertChallengeData = (c: any) => {
     deadline: null,
     createdAt: new Date(c.created_at),
     thumbnail:
-      c.thumbnail ||
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Typical_Tetris_Game.svg/1200px-Typical_Tetris_Game.svg.png",
+      c?.thumbnail ||
+      "/TetrisImage.png",
     creator: c.creator || null,
     participants: c.participants || null,
   };
@@ -44,7 +44,7 @@ export const CHALLENGES_MOCK_DATA: Array<ChallengeData> = [
     description:
       "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.",
     thumbnail:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Typical_Tetris_Game.svg/1200px-Typical_Tetris_Game.svg.png",
+      "/TetrisImage.png",
     participants: 13,
     creator: "Rick",
     createdAt: new Date(new Date().getTime() - 5 * 24 * 60 * 60 * 1000),
@@ -59,7 +59,7 @@ export const CHALLENGES_MOCK_DATA: Array<ChallengeData> = [
     description:
       "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.",
     thumbnail:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Typical_Tetris_Game.svg/1200px-Typical_Tetris_Game.svg.png",
+      "/TetrisImage.png",
     participants: 4,
     creator: "Rick",
     createdAt: new Date(new Date().getTime() - 10 * 24 * 60 * 60 * 1000),
@@ -74,7 +74,7 @@ export const CHALLENGES_MOCK_DATA: Array<ChallengeData> = [
     description:
       "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.",
     thumbnail:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Typical_Tetris_Game.svg/1200px-Typical_Tetris_Game.svg.png",
+      "/TetrisImage.png",
     participants: 0,
     creator: "Benny",
     createdAt: new Date(new Date().getTime() - 19 * 24 * 60 * 60 * 1000),
@@ -89,7 +89,7 @@ export const CHALLENGES_MOCK_DATA: Array<ChallengeData> = [
     description:
       "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.",
     thumbnail:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Typical_Tetris_Game.svg/1200px-Typical_Tetris_Game.svg.png",
+      "/TetrisImage.png",
     participants: 49,
     creator: "Rick",
     createdAt: new Date(new Date().getTime() - 2 * 24 * 60 * 60 * 1000),
@@ -104,7 +104,7 @@ export const CHALLENGES_MOCK_DATA: Array<ChallengeData> = [
     description:
       "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.",
     thumbnail:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Typical_Tetris_Game.svg/1200px-Typical_Tetris_Game.svg.png",
+      "/TetrisImage.png",
     participants: 1,
     creator: "Rick",
     createdAt: new Date(new Date().getTime() - 4 * 24 * 60 * 60 * 1000),

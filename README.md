@@ -9,6 +9,13 @@ We recommend Docker Desktop for managing the images and containers. (Link: https
 
 # How to run the platform:
 
+### running on ramen
+
+`sudo docker compose down -v`
+`sudo docker compose build frontend`
+`sudo docker compose up -d`
+`sudo docker compose exec backend python manage.py migrate`
+
 ### building images
 
 Inside the folder containing the repository, please run the following command:

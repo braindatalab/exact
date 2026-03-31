@@ -7,7 +7,7 @@ import {
   Typography,
 } from "@mui/material";
 import Link from "next/link";
-import tetris from "@/public/tetris.png";
+import tetris from "@/public/TetrisImage.png";
 
 const Datasets = () => {
   const competitionName = "Tetris";

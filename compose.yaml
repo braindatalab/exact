@@ -8,6 +8,7 @@ services:
     user: root
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./platform/backend:/app
       - ./media:/app/mysite/media
     depends_on:
       - db
@@ -21,7 +22,7 @@ services:
       - ./platform/frontend:/app
       - /app/node_modules
     ports:
-      - "3000:3000"
+      - "8080:3000"
     working_dir: /app
     command: npm run dev
     environment:
@@ -36,9 +37,8 @@ services:
     image: exact-worker  # Wir definieren den Namen des Images explizit
 
   db:
-    image: postgres
+    image: postgres:16
     restart: always
-    user: postgres
     secrets:
       - db-password
     volumes:
@@ -47,7 +47,7 @@ services:
       - POSTGRES_DB=example
       - POSTGRES_PASSWORD_FILE=/run/secrets/db-password
     ports:
-      - "5432:5432"
+      - "5433:5432"
     healthcheck:
       test: ["CMD", "pg_isready"]
       interval: 10s

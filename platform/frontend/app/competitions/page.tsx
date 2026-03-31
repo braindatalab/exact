@@ -25,7 +25,7 @@ const Competitions = () => {
 
   useEffect(() => {
     client
-      .get("/api/challenges")
+      .get("api/challenges")
       .then(({ data }) => {
         setChallenges(data.map((c: any) => convertChallengeData(c)));
       })
