@@ -34,7 +34,11 @@ services:
   worker:
     build:
       context: ./worker
-    image: exact-worker  # Wir definieren den Namen des Images explizit
+    image: exact-worker # Wir definieren den Namen des Images explizit
+
+    user: root
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
 
   db:
     image: postgres:16
@@ -49,7 +53,7 @@ services:
     ports:
       - "5433:5432"
     healthcheck:
-      test: ["CMD", "pg_isready"]
+      test: [ "CMD", "pg_isready" ]
       interval: 10s
       timeout: 5s
       retries: 5
