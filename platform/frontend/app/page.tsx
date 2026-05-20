@@ -108,13 +108,13 @@ export default function Home() {
                   <ThemeIcon
                     size={60}
                     radius="xl"
-                    color="ptbBlue.5"
+                    color="ptbBlue"
                   >
                     {s.icon}
                   </ThemeIcon>
                   <Badge
                     variant="light"
-                    color="ptbBlue.5"
+                    color="ptbBlue"
                     size="lg"
                     radius="xl"
                   >
@@ -142,7 +142,7 @@ export default function Home() {
               <Button
                 size="xl"
                 radius="xl"
-                color="ptbBlue.5"
+                color="ptbBlue"
                 component={Link}
                 href="/register"
                 leftSection={<IconUserPlus />}
@@ -153,7 +153,7 @@ export default function Home() {
                 size="xl"
                 radius="xl"
                 variant="outline"
-                color="ptbBlue.5"
+                color="ptbBlue"
                 component={Link}
                 href="/competitions"
                 leftSection={<IconSelect />}

@@ -261,7 +261,7 @@ const CreateChallenge = () => {
               <Button
                 type="submit"
                 size="md"
-                color="ptbBlue.5"
+                color="ptbBlue"
                 loading={isLoading}
               >
                 Create Challenge

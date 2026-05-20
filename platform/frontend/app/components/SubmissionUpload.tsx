@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Button } from '@mantine/core';
 
 interface SubmissionUploadProps {
   onFileSelect: (file: File) => void;
@@ -115,8 +116,10 @@ const SubmissionUpload: React.FC<SubmissionUploadProps> = ({
                   >
                     {file.name}
                   </span>
-                  <button
-                    className="ml-2 text-red-500 hover:text-red-700 text-xs border border-red-300 rounded px-2 py-1 flex-shrink-0"
+                  <Button
+                    color="red"
+                    variant="outline"
+                    size="xs"
                     onClick={e => {
                       e.stopPropagation();
                       handleRemove(index);
@@ -124,20 +127,21 @@ const SubmissionUpload: React.FC<SubmissionUploadProps> = ({
                     title="Entfernen"
                   >
                     Entfernen
-                  </button>
+                  </Button>
                 </div>
               ))}
               <div className="flex justify-end mt-4">
-                <button
-                  className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded shadow disabled:opacity-50"
+                <Button
+                  color="ptbBlue"
                   onClick={e => {
                     e.stopPropagation();
                     handleUpload();
                   }}
-                  disabled={pendingFiles.length === 0 || isLoading}
+                  disabled={pendingFiles.length === 0}
+                  loading={isLoading}
                 >
                   Upload
-                </button>
+                </Button>
               </div>
             </div>
           )}
