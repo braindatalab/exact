@@ -38,17 +38,21 @@ def run_metric_in_container(client: docker.DockerClient, worker_image_id: str, c
         logger.info(f"Container logs for '{' '.join(command)}':\n{logs}")
 
         if result['StatusCode'] == 0:
-            return parse_scores_from_logs(logs)
+            scores = parse_scores_from_logs(logs)
+            if scores.get('mean') is None:
+                return {'mean': None, 'std': None, 'error': f"Could not parse scores from logs. Output was:\n{logs}"}
+            return scores
         else:
             logger.error(f"Container for command '{' '.join(command)}' failed with status code {result['StatusCode']}.")
-            return {'mean': None, 'std': None}
+            return {'mean': None, 'std': None, 'error': f"Container failed with status code {result['StatusCode']}. Output was:\n{logs}"}
             
     except docker.errors.ContainerError as e:
-        logger.error(f"ContainerError during '{' '.join(command)}'. Logs:\n{e.container.logs().decode('utf-8')}")
-        return {'mean': None, 'std': None}
+        logs = e.container.logs().decode('utf-8')
+        logger.error(f"ContainerError during '{' '.join(command)}'. Logs:\n{logs}")
+        return {'mean': None, 'std': None, 'error': f"ContainerError: {logs}"}
     except Exception as e:
         logger.error(f"An unexpected error occurred during '{' '.join(command)}': {e}")
-        return {'mean': None, 'std': None}
+        return {'mean': None, 'std': None, 'error': f"Unexpected error: {e}"}
 
 def spawn_worker_container(worker_id: str, challenge_id: str, xai_method: str):
     logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -70,6 +74,8 @@ def spawn_worker_container(worker_id: str, challenge_id: str, xai_method: str):
         # Führe EMD-Berechnung aus
         emd_command = ["python", "emd.py"]
         emd_results = run_metric_in_container(client, worker_image.id, emd_command, base_environment)
+        if emd_results and emd_results.get('error'):
+            return (f"EMD Error: {emd_results['error']}", final_scores)
         if emd_results:
             final_scores['emd_score'] = emd_results.get('mean')
             final_scores['emd_std'] = emd_results.get('std')
@@ -79,6 +85,8 @@ def spawn_worker_container(worker_id: str, challenge_id: str, xai_method: str):
         # Führe IMA-Berechnung aus
         ima_command = ["python", "ima.py"]
         ima_results = run_metric_in_container(client, worker_image.id, ima_command, base_environment)
+        if ima_results and ima_results.get('error'):
+            return (f"IMA Error: {ima_results['error']}", final_scores)
         if ima_results:
             final_scores['ima_score'] = ima_results.get('mean')
             final_scores['ima_std'] = ima_results.get('std')

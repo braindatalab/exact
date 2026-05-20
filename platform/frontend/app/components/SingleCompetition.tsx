@@ -85,7 +85,7 @@ export const SingleCompetition = (props: SingleCompetitionProps) => {
             </div>
           </div>
 
-          <FileUpload />
+          <FileUpload type="xai" onFileSelect={(file) => console.log(file)} />
         </main>
       </div>
     </>

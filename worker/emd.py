@@ -38,6 +38,15 @@ def continuous_emd(gt_mask, attribution, n_dim=64):
         print(f"[EMD] Fehler in continuous_emd: {e}", flush=True)
         return 0.0
 
+def importance_mass_accuracy(gt_mask, attribution):
+    gt_mask_flat = gt_mask.flatten()
+    attribution_flat = np.abs(attribution.flatten())
+    total_importance = np.sum(attribution_flat)
+    if total_importance == 0:
+        return 0.0
+    importance_in_gt = np.sum(attribution_flat[gt_mask_flat == 1])
+    return importance_in_gt / total_importance
+
 try:
     print("[EMD] Lese 'xai_method' aus Umgebungsvariable...", flush=True)
     xai_method = os.getenv('xai_method')
@@ -95,7 +104,7 @@ try:
     combined_mask = combined_mask.reshape((8,8))
 
     plt.style.use('seaborn-v0_8-colorblind')
-    fig, axes = plt.subplots(3, batch_size, figsize=(2 * batch_size, 6))
+    fig, axes = plt.subplots(3, batch_size, figsize=(3 * batch_size, 9))
     if batch_size == 1:
         axes = np.expand_dims(axes, 1)
         
@@ -108,7 +117,9 @@ try:
         data_img = x_test_batch[i].detach().numpy().reshape(edge_length, edge_length)
         axes[0, i].imshow(data_img, cmap='RdBu_r', vmin=-1, vmax=1)
         axes[0, i].axis('off')
-        axes[0, i].set_title(f"Sample #{i}", fontsize=10)
+        sample_emd = emd_scores[i]
+        sample_ima = importance_mass_accuracy(d.masks_test[i], explanations[i].detach().numpy())
+        axes[0, i].set_title(f"Sample #{i}\nEMD: {sample_emd:.2f} | IMA: {sample_ima:.2f}", fontsize=12, fontweight='bold', pad=10)
         if i == 0:
             axes[0, i].text(-0.2, 0.5, 'Data', va='center', ha='right', rotation=90, transform=axes[0, i].transAxes, fontsize=12)
         

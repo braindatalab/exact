@@ -26,7 +26,7 @@ const ChallengeCard = ({ challenge, onDelete }: ChallengeCardProps) => {
     e.preventDefault();
     e.stopPropagation();
     if (confirm("Are you sure you want to delete this challenge?")) {
-      client.delete(`api/challenge/${challenge.id}/delete?username=${user?.username}`)
+      client.delete(`api/challenge/${challenge.id}/delete`)
         .then(() => {
           if (onDelete) onDelete(challenge.id);
         })

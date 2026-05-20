@@ -12,33 +12,42 @@ interface CookieOptions {
 const defaultOptions: CookieOptions = {
   expires: 7, // 7 days
   path: '/',
-  secure: process.env.NODE_ENV === 'production',
+  secure: typeof window !== 'undefined' ? window.location.protocol === 'https:' : false,
   sameSite: 'lax',
 };
 
 // Storage class to handle both cookies and localStorage
 export class Storage {
   private static hasConsent(): boolean {
-    const consent = Cookies.get('cookieConsent');
-    console.log('Checking cookie consent:', consent);
-    return consent === 'accepted';
+    try {
+      const consent = Cookies.get('cookieConsent');
+      console.log('Checking cookie consent:', consent);
+      return consent === 'accepted';
+    } catch (e) {
+      console.error('Error checking cookie consent:', e);
+      return false;
+    }
   }
 
   // Cookie methods
   static setCookie(key: string, value: any, options: CookieOptions = {}) {
-    // Always allow setting the cookieConsent cookie
-    if (key === 'cookieConsent') {
-      console.log('Setting cookieConsent cookie:', value);
-      const mergedOptions = { ...defaultOptions, ...options };
-      Cookies.set(key, typeof value === 'string' ? value : JSON.stringify(value), mergedOptions);
-      return true;
-    }
-    
-    if (this.hasConsent()) {
-      console.log('Setting cookie with consent:', key, value);
-      const mergedOptions = { ...defaultOptions, ...options };
-      Cookies.set(key, typeof value === 'string' ? value : JSON.stringify(value), mergedOptions);
-      return true;
+    try {
+      // Always allow setting the cookieConsent cookie
+      if (key === 'cookieConsent') {
+        console.log('Setting cookieConsent cookie:', value);
+        const mergedOptions = { ...defaultOptions, ...options };
+        Cookies.set(key, typeof value === 'string' ? value : JSON.stringify(value), mergedOptions);
+        return true;
+      }
+      
+      if (this.hasConsent()) {
+        console.log('Setting cookie with consent:', key, value);
+        const mergedOptions = { ...defaultOptions, ...options };
+        Cookies.set(key, typeof value === 'string' ? value : JSON.stringify(value), mergedOptions);
+        return true;
+      }
+    } catch (e) {
+      console.error('Error setting cookie:', e);
     }
     
     console.log('Blocked setting cookie (no consent):', key);
@@ -46,21 +55,25 @@ export class Storage {
   }
 
   static getCookie(key: string) {
-    // Always allow reading the cookieConsent cookie
-    const value = Cookies.get(key);
-    
-    if (key === 'cookieConsent') {
-      console.log('Reading cookieConsent cookie:', value);
-      return value;
-    }
-    
-    if (this.hasConsent()) {
-      console.log('Reading cookie with consent:', key, value);
-      try {
-        return value ? JSON.parse(value) : null;
-      } catch {
+    try {
+      // Always allow reading the cookieConsent cookie
+      const value = Cookies.get(key);
+      
+      if (key === 'cookieConsent') {
+        console.log('Reading cookieConsent cookie:', value);
         return value;
       }
+      
+      if (this.hasConsent()) {
+        console.log('Reading cookie with consent:', key, value);
+        try {
+          return value ? JSON.parse(value) : null;
+        } catch {
+          return value;
+        }
+      }
+    } catch (e) {
+      console.error('Error getting cookie:', e);
     }
     
     console.log('Blocked reading cookie (no consent):', key);
@@ -68,9 +81,13 @@ export class Storage {
   }
 
   static removeCookie(key: string) {
-    // Always allow removing any cookie
-    console.log('Removing cookie:', key);
-    Cookies.remove(key, { path: '/' });
+    try {
+      // Always allow removing any cookie
+      console.log('Removing cookie:', key);
+      Cookies.remove(key, { path: '/' });
+    } catch (e) {
+      console.error('Error removing cookie:', e);
+    }
   }
 
   // LocalStorage methods with error handling

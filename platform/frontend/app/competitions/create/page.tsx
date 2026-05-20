@@ -22,6 +22,12 @@ const CreateChallenge = () => {
   const user = useUser();
   const router = useRouter();
 
+  React.useEffect(() => {
+    if (user === null) {
+      router.push("/login");
+    }
+  }, [user, router]);
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [dataset, setDataset] = useState<File | null>(null);
@@ -104,7 +110,6 @@ const CreateChallenge = () => {
     }
   };
 
-  // Custom file input component
   const CustomFileInput = ({ 
     label, 
     description, 
@@ -112,7 +117,8 @@ const CreateChallenge = () => {
     value, 
     onChange, 
     onClear,
-    accept = "*/*" 
+    accept = "*/*",
+    required = true 
   }: { 
     label: string; 
     description: string; 
@@ -121,11 +127,12 @@ const CreateChallenge = () => {
     onChange: (e: ChangeEvent<HTMLInputElement>) => void;
     onClear: () => void;
     accept?: string;
+    required?: boolean;
   }) => {
     return (
       <Box mb="md">
         <Text fw={500} mb={5}>
-          {label} <span style={{ color: 'red' }}>*</span>
+          {label} {required && <span style={{ color: 'red' }}>*</span>}
         </Text>
         <Text size="sm" c="dimmed" mb={5}>
           {description}
@@ -247,6 +254,7 @@ const CreateChallenge = () => {
               onChange={(e) => handleFileChange(e, setThumbnail)}
               onClear={() => clearFileInput(thumbnailInputRef, setThumbnail)}
               accept="image/png, image/jpeg, image/jpg"
+              required={false}
             />
 
             <Group justify="center" mt="lg">

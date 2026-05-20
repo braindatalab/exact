@@ -35,7 +35,7 @@ services:
     build:
       context: ./worker
     image: exact-worker # Wir definieren den Namen des Images explizit
-
+    platform: linux/amd64
     user: root
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock

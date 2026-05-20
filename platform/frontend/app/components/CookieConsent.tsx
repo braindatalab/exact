@@ -5,20 +5,19 @@ import { Paper, Text, Group, Button, Box } from '@mantine/core';
 import { Storage } from '../utils/storage';
 
 export function CookieConsent() {
-  const [showBanner, setShowBanner] = useState(true); // Start with true to ensure initial visibility
+  const [showBanner, setShowBanner] = useState(false); // Start with false to avoid hydration mismatch
 
   useEffect(() => {
     // Check if user has already made a choice
     const consent = Storage.getCookie('cookieConsent');
     console.log('Current cookie consent status:', consent);
     
-    // Only hide the banner if we explicitly have a consent choice
-    if (consent === 'accepted' || consent === 'declined') {
-      console.log('Hiding banner due to existing choice:', consent);
-      setShowBanner(false);
-    } else {
+    // Only show the banner if we do NOT have a consent choice yet
+    if (consent !== 'accepted' && consent !== 'declined') {
       console.log('Showing banner - no consent choice found');
       setShowBanner(true);
+    } else {
+      console.log('Hiding banner due to existing choice:', consent);
     }
   }, []);
 
@@ -64,22 +63,42 @@ export function CookieConsent() {
             </Text>
           </Box>
           <Group gap="sm">
-            <Button
-              variant="outline"
-              color="gray"
-              size="sm"
+            <button
               onClick={handleDecline}
+              style={{
+                background: 'transparent',
+                border: '1px solid #ced4da',
+                borderRadius: '4px',
+                padding: '6px 12px',
+                fontSize: '14px',
+                cursor: 'pointer',
+                color: '#495057',
+                fontWeight: 500,
+                transition: 'background-color 0.2s ease'
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#f1f3f5'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
             >
               Decline
-            </Button>
-            <Button
-              variant="filled"
-              color="blue"
-              size="sm"
+            </button>
+            <button
               onClick={handleAccept}
+              style={{
+                background: '#228be6',
+                border: 'none',
+                borderRadius: '4px',
+                padding: '6px 12px',
+                fontSize: '14px',
+                cursor: 'pointer',
+                color: 'white',
+                fontWeight: 500,
+                transition: 'background-color 0.2s ease'
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#1c7ed6'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#228be6'; }}
             >
               Accept
-            </Button>
+            </button>
           </Group>
         </Group>
       </Paper>

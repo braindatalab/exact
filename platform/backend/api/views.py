@@ -1,9 +1,11 @@
 import uuid 
 import os 
-from rest_framework.decorators import api_view, parser_classes
+from rest_framework.decorators import api_view, parser_classes, authentication_classes, permission_classes
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import SessionAuthentication
 from .models import *
 from .serializers import *
 from .worker_utils import spawn_worker_container
@@ -20,6 +22,8 @@ from django.http import FileResponse, Http404
 
 @api_view(['POST'])
 @parser_classes([MultiPartParser])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
 def xai_detail(request, challenge_id):
     """
     Process XAI method submission and calculate both EMD and IMA scores.
@@ -29,7 +33,6 @@ def xai_detail(request, challenge_id):
         return Response({'error': 'Invalid form submission.'}, status=status.HTTP_400_BAD_REQUEST)
 
     input_file = form.cleaned_data['file']
-    username = form.cleaned_data['username']
     method_name = form.cleaned_data.get('method_name', 'Unnamed Method')
 
     xai_method_code = input_file.read().decode('utf-8')
@@ -41,7 +44,7 @@ def xai_detail(request, challenge_id):
 
     score_data = {
         'challenge_id': challenge_id,
-        'username': username,
+        'username': request.user.username,
         'method_name': method_name,
         'status': 'completed',
         'emd_score': scores.get('emd_score'),
@@ -174,6 +177,8 @@ def xaimethod_detail(request, challenge_id):
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['POST'])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
 def create_challenge(request):
     if request.method == 'POST':
         form = ChallengeForm(request.POST, request.FILES)
@@ -183,7 +188,7 @@ def create_challenge(request):
                 challenge_id=unique_id,
                 title=form.cleaned_data['title'],
                 description=form.cleaned_data['description'],
-                creator=form.cleaned_data.get('creator'),
+                creator=request.user.username,
                 xaimethod=form.cleaned_data['xai_method'],
                 dataset=form.cleaned_data['dataset'],
                 mlmodel=form.cleaned_data['mlmodel'],
@@ -194,6 +199,8 @@ def create_challenge(request):
 
 @csrf_exempt
 def challenge_form_view(request):
+    if not request.user.is_authenticated:
+        return HttpResponse("Unauthorized", status=401)
     if request.method == 'POST':
         form = ChallengeForm(request.POST, request.FILES)
         if form.is_valid():
@@ -202,7 +209,7 @@ def challenge_form_view(request):
                 challenge_id=unique_id,
                 title=form.cleaned_data['title'],
                 description=form.cleaned_data['description'],
-                creator=form.cleaned_data.get('creator'),
+                creator=request.user.username,
                 xaimethod=form.cleaned_data['xai_method'],
                 dataset=form.cleaned_data['dataset'],
                 mlmodel=form.cleaned_data['mlmodel'],
@@ -225,11 +232,12 @@ def get_challenge(request, challenge_id):
         return Response({"error": "Challenge not found"}, status=404)
         
 @api_view(['DELETE'])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
 def delete_challenge(request, challenge_id):
     try:
         challenge = Challenge.objects.get(challenge_id=challenge_id)
-        username = request.GET.get('username')
-        if challenge.creator and challenge.creator != username:
+        if challenge.creator and challenge.creator != request.user.username:
             return Response({"error": "Unauthorized"}, status=403)
         challenge.delete()
         return Response({"message": "Deleted successfully"}, status=200)

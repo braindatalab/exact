@@ -152,7 +152,7 @@ const SubmissionUpload: React.FC<SubmissionUploadProps> = ({
         </div>
       )}
       {error && (
-        <div className="absolute bottom-2 left-2 right-2 bg-red-100 text-red-600 p-2 rounded text-sm">
+        <div className="absolute bottom-2 left-2 right-2 bg-red-100 text-red-600 p-2 rounded text-xs max-h-32 overflow-y-auto text-left whitespace-pre-wrap font-mono">
           {error}
         </div>
       )}

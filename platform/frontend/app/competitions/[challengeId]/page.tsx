@@ -22,9 +22,11 @@ import {
   Badge,
   Tooltip,
   Box,
+  Stack,
 } from "@mantine/core";
 import { ChallengeData, Score, DetailedScores } from "@/app/components/types";
 import { useClient, useUser } from "@/app/components/UserContext";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   IconDataset,
@@ -251,67 +253,74 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
                     <Loader type="dots" />
                   </Center>
                 ) : (
-                  <Table
-                    data={{
-                      caption: "Your Contributions To This Challenge",
-                      head: ["Submitted at", "Method", "EMD Score", "IMA Score", "Heatmaps"],
-                      body: scores.reduce((t: Array<any>, s: Score) => {
-                        if (s.username !== user.username) {
-                          return t;
-                        }
-                        return [
-                          ...t,
-                          [
-                            formatDateGerman(s.createdAt),
-                            s.methodName || "Unknown Method",
-                            <Group gap="xs">
-                              <Text>{formatScore(s.emdScore)}</Text>
-                              {s.emdStd && (
-                                <Text size="xs" c="dimmed">
-                                  ±{formatScore(s.emdStd)}
-                                </Text>
-                              )}
-                            </Group>,
-                            <Group gap="xs">
-                              <Text>{formatScore(s.imaScore)}</Text>
-                              {s.imaStd && (
-                                <Text size="xs" c="dimmed">
-                                  ±{formatScore(s.imaStd)}
-                                </Text>
-                              )}
-                            </Group>,
-                            s.plotBase64 ? (
-                              <Button
-                                size="xs"
-                                variant="light"
-                                onClick={() => {
-                                  setSelectedPlot({ base64: s.plotBase64 as string, method: s.methodName || "Unknown Method" });
-                                  setIsPlotModalOpen(true);
-                                }}
-                              >
-                                View
-                              </Button>
-                            ) : (
-                              "-"
-                            ),
-                          ],
-                        ];
-                      }, []),
-                    }}
-                  />
+                  <>
+                    <Table
+                      data={{
+                        caption: "Your Contributions To This Challenge",
+                        head: ["Submitted at", "Method", "EMD Score", "IMA Score", "Heatmaps"],
+                        body: scores.reduce((t: Array<any>, s: Score) => {
+                          if (s.username !== user.username) {
+                            return t;
+                          }
+                          return [
+                            ...t,
+                            [
+                              formatDateGerman(s.createdAt),
+                              s.methodName || "Unknown Method",
+                              <Group gap="xs" key="emd">
+                                <Text>{formatScore(s.emdScore)}</Text>
+                                {s.emdStd && (
+                                  <Text size="xs" c="dimmed">
+                                    ±{formatScore(s.emdStd)}
+                                  </Text>
+                                )}
+                              </Group>,
+                              <Group gap="xs" key="ima">
+                                <Text>{formatScore(s.imaScore)}</Text>
+                                {s.imaStd && (
+                                  <Text size="xs" c="dimmed">
+                                    ±{formatScore(s.imaStd)}
+                                  </Text>
+                                )}
+                              </Group>,
+                              s.plotBase64 ? (
+                                <Button
+                                  size="xs"
+                                  variant="light"
+                                  onClick={() => {
+                                    setSelectedPlot({ base64: s.plotBase64 as string, method: s.methodName || "Unknown Method" });
+                                    setIsPlotModalOpen(true);
+                                  }}
+                                >
+                                  View
+                                </Button>
+                              ) : (
+                                "-"
+                              ),
+                            ],
+                          ];
+                        }, []),
+                      }}
+                    />
+                    <Group justify="center" mt="md">
+                      <Button
+                        variant="gradient"
+                        gradient={{ from: "blue", to: "cyan", deg: 90 }}
+                        onClick={() => setIsUploadSubmissionModalOpen(true)}
+                      >
+                        Add Submission
+                      </Button>
+                    </Group>
+                  </>
                 )
               ) : (
-                <Text>You are not logged in...</Text>
+                <Stack align="center" gap="sm" py="md">
+                  <Text c="dimmed">You must be logged in to view your submissions and add new ones.</Text>
+                  <Button component={Link} href="/login" variant="light" size="sm">
+                    Log In
+                  </Button>
+                </Stack>
               )}
-              <Group justify="center" mt="md">
-                <Button
-                  variant="gradient"
-                  gradient={{ from: "blue", to: "cyan", deg: 90 }}
-                  onClick={() => setIsUploadSubmissionModalOpen(true)}
-                >
-                  Add Submission
-                </Button>
-              </Group>
             </Paper>
           </Grid.Col>
           <Grid.Col span={{ base: 12, lg: 4 }}>
@@ -357,7 +366,7 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
                     fullWidth
                     onClick={() => {
                       if (confirm("Are you sure you want to delete this challenge? This action cannot be undone.")) {
-                        client.delete(`api/challenge/${challenge.id}/delete?username=${user.username}`)
+                        client.delete(`api/challenge/${challenge.id}/delete`)
                           .then(() => {
                             window.location.href = "/competitions";
                           })
@@ -424,7 +433,7 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
                 <Tabs.Panel value="emd" pt="xs">
                   <Box mb="xs">
                     <Text size="sm" c="dimmed">
-                      Earth Mover's Distance - measures spatial alignment
+                      {"Earth Mover's Distance - measures spatial alignment"}
                     </Text>
                   </Box>
                 </Tabs.Panel>
