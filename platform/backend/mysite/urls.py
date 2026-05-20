@@ -31,6 +31,7 @@ urlpatterns = [
     path('challenge/form', challenge_form_view),  # Form already didn't have it
     path('success/', success_view, name='success'),
     path('api/challenge/<str:challenge_id>', get_challenge),
+    path('api/challenge/<str:challenge_id>/delete', delete_challenge),
     path('api/challenges', get_challenges), 
     path('api/scores', get_scores),
     path('', include('user_api.urls')),

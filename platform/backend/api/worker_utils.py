@@ -16,6 +16,11 @@ def parse_scores_from_logs(logs: str):
         final_score_match = re.search(r'FINAL_SCORE:([0-9.]+)', logs)
         if final_score_match:
             scores['mean'] = float(final_score_match.group(1))
+    
+    plot_match = re.search(r'PLOT_DATA_START:(.*?):PLOT_DATA_END', logs, re.DOTALL)
+    if plot_match:
+        scores['plot_base64'] = plot_match.group(1)
+        
     return scores
 
 def run_metric_in_container(client: docker.DockerClient, worker_image_id: str, command: list, environment: dict):
@@ -47,7 +52,7 @@ def run_metric_in_container(client: docker.DockerClient, worker_image_id: str, c
 
 def spawn_worker_container(worker_id: str, challenge_id: str, xai_method: str):
     logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-    final_scores = {'emd_score': None, 'emd_std': None, 'ima_score': None, 'ima_std': None}
+    final_scores = {'emd_score': None, 'emd_std': None, 'ima_score': None, 'ima_std': None, 'plot_base64': None}
     
     try:
         client = docker.from_env()
@@ -68,6 +73,8 @@ def spawn_worker_container(worker_id: str, challenge_id: str, xai_method: str):
         if emd_results:
             final_scores['emd_score'] = emd_results.get('mean')
             final_scores['emd_std'] = emd_results.get('std')
+            if emd_results.get('plot_base64'):
+                final_scores['plot_base64'] = emd_results.get('plot_base64')
         
         # Führe IMA-Berechnung aus
         ima_command = ["python", "ima.py"]

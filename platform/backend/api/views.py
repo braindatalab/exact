@@ -48,6 +48,7 @@ def xai_detail(request, challenge_id):
         'emd_std': scores.get('emd_std'),
         'ima_score': scores.get('ima_score'),
         'ima_std': scores.get('ima_std'),
+        'plot_base64': scores.get('plot_base64'),
         'score': scores.get('emd_score')  # Standard-Score ist EMD
     }
 
@@ -182,6 +183,7 @@ def create_challenge(request):
                 challenge_id=unique_id,
                 title=form.cleaned_data['title'],
                 description=form.cleaned_data['description'],
+                creator=form.cleaned_data.get('creator'),
                 xaimethod=form.cleaned_data['xai_method'],
                 dataset=form.cleaned_data['dataset'],
                 mlmodel=form.cleaned_data['mlmodel'],
@@ -200,6 +202,7 @@ def challenge_form_view(request):
                 challenge_id=unique_id,
                 title=form.cleaned_data['title'],
                 description=form.cleaned_data['description'],
+                creator=form.cleaned_data.get('creator'),
                 xaimethod=form.cleaned_data['xai_method'],
                 dataset=form.cleaned_data['dataset'],
                 mlmodel=form.cleaned_data['mlmodel'],
@@ -218,6 +221,18 @@ def get_challenge(request, challenge_id):
         challenge = Challenge.objects.get(challenge_id=challenge_id)
         serializer = ChallengeSerializer(challenge)
         return Response(serializer.data)
+    except Challenge.DoesNotExist:
+        return Response({"error": "Challenge not found"}, status=404)
+        
+@api_view(['DELETE'])
+def delete_challenge(request, challenge_id):
+    try:
+        challenge = Challenge.objects.get(challenge_id=challenge_id)
+        username = request.GET.get('username')
+        if challenge.creator and challenge.creator != username:
+            return Response({"error": "Unauthorized"}, status=403)
+        challenge.delete()
+        return Response({"message": "Deleted successfully"}, status=200)
     except Challenge.DoesNotExist:
         return Response({"error": "Challenge not found"}, status=404)
     

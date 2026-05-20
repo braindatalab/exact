@@ -12,13 +12,12 @@ class UserRegister(APIView):
 	def post(self, request):
 		# clean_data = custom_validation(request.data)
 		clean_data = request.data
-		print(clean_data)
 		serializer = UserRegisterSerializer(data=clean_data)
-		if serializer.is_valid(raise_exception=True):
+		if serializer.is_valid():
 			user = serializer.create(clean_data)
 			if user:
 				return Response(serializer.data, status=status.HTTP_201_CREATED)
-		return Response(status=status.HTTP_400_BAD_REQUEST)
+		return Response({'error': ' '.join([f"{k}: {v[0]}" for k, v in serializer.errors.items()])}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserLogin(APIView):
@@ -30,10 +29,14 @@ class UserLogin(APIView):
 		# assert validate_email(data)
 		# assert validate_password(data)
 		serializer = UserLoginSerializer(data=data)
-		if serializer.is_valid(raise_exception=True):
-			user = serializer.check_user(data)
+		if serializer.is_valid():
+			try:
+				user = serializer.check_user(data)
+			except KeyError:
+				return Response({'error': 'Invalid username or password'}, status=status.HTTP_401_UNAUTHORIZED)
 			login(request, user)
-			return Response(serializer.data, status=status.HTTP_200_OK) # Status nicht immer 200 
+			return Response(serializer.data, status=status.HTTP_200_OK)
+		return Response({'error': ' '.join([f"{k}: {v[0]}" for k, v in serializer.errors.items()])}, status=status.HTTP_400_BAD_REQUEST) 
 
 
 class UserLogout(APIView):

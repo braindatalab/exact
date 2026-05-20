@@ -10,6 +10,8 @@ class ScoreSerializer(serializers.ModelSerializer):
     ima_score = serializers.FloatField(required=False, allow_null=True)
     ima_std = serializers.FloatField(required=False, allow_null=True)
     
+    plot_base64 = serializers.CharField(required=False, allow_null=True)
+    
     # Legacy score field - now optional
     score = serializers.FloatField(required=False, allow_null=True)
     
@@ -27,6 +29,7 @@ class ScoreSerializer(serializers.ModelSerializer):
             'emd_std', 
             'ima_score', 
             'ima_std',
+            'plot_base64',
             'primary_score',
             'method_name', 
             'created_at',
@@ -48,6 +51,7 @@ class ChallengeSerializer(serializers.ModelSerializer):
             'challenge_id',
             'title',
             'description',
+            'creator',
             'created_at',
             'dataset',
             'mlmodel',

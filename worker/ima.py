@@ -34,9 +34,9 @@ try:
     d = data["linear_1d1p_0.18_uncorrelated"]
     print("[IMA] Daten und Modell geladen.", flush=True)
 
-    batch_size = min(10, len(d.x_train))
-    x_train_batch = d.x_train[:batch_size].to(t.float)
-    y_train_batch = d.y_train[:batch_size]
+    batch_size = min(10, len(d.x_test))
+    x_test_batch = d.x_test[:batch_size].to(t.float)
+    y_test_batch = d.y_test[:batch_size]
 
     print("[IMA] Führe 'exec(xai_method)' aus...", flush=True)
     safe_namespace = {'torch': t, 't': t, 'captum': __import__('captum')}
@@ -49,11 +49,11 @@ try:
     
     XAI_Method = safe_namespace['XAI_Method']
     print("[IMA] Rufe die XAI_Method auf...", flush=True)
-    explanations = XAI_Method(x_train_batch, y_train_batch, model)
+    explanations = XAI_Method(x_test_batch, y_test_batch, model)
     print("[IMA] XAI_Method erfolgreich aufgerufen.", flush=True)
 
     print("[IMA] Berechne IMA-Scores...", flush=True)
-    ima_scores = [importance_mass_accuracy(d.masks_train[i], explanations[i].detach().numpy()) for i in range(batch_size)]
+    ima_scores = [importance_mass_accuracy(d.masks_test[i], explanations[i].detach().numpy()) for i in range(batch_size)]
     mean_score = np.mean(ima_scores)
     std_score = np.std(ima_scores)
     print(f"IMA Mean: {mean_score:.4f}", flush=True)

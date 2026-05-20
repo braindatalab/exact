@@ -3,6 +3,7 @@ import React, { useState, useContext, useEffect } from "react";
 import { UserData } from "./types";
 import axios, { AxiosInstance } from "axios";
 import { BASE_URL_API } from "./utils";
+import { Storage } from "../utils/storage";
 
 axios.defaults.xsrfCookieName = "csrftoken";
 axios.defaults.xsrfHeaderName = "X-CSRFToken";
@@ -36,12 +37,14 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     client
-      .get("user")
+      .get("user", { headers: { 'Cache-Control': 'no-cache' } })
       .then(({ data }) => {
         setUser(data.user);
       })
       .catch(() => {
         setUser(null);
+        Storage.removeLocalStorage('user');
+        Storage.removeCookie('sessionActive');
       });
   }, []);
 

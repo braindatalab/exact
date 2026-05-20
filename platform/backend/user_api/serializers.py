@@ -32,7 +32,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 class UserLoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     username = serializers.CharField()
-    password = serializers.CharField()
+    password = serializers.CharField(write_only=True)
     
     def check_user(self, clean_data):
         user = authenticate(username=clean_data['username'], password=clean_data['password'])

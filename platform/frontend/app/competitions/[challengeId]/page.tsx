@@ -69,11 +69,14 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
   const [scores, setScores] = useState<Array<Score>>([]);
   const [methodName, setMethodName] = useState<string | null>(null);
   const [activeMetric, setActiveMetric] = useState<string>("emd");
+  const [isPlotModalOpen, setIsPlotModalOpen] = useState(false);
+  const [selectedPlot, setSelectedPlot] = useState<{ base64: string, method: string } | null>(null);
 
   const {
     data: scoreData,
     error: errorLoadingScoreData,
     isLoading: isLoadingScoreData,
+    mutate: mutateScores,
   } = useSWR(`${BASE_URL_API}/api/scores`, fetcher);
 
   useEffect(() => {
@@ -144,6 +147,7 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
         
         if (score) {
           setSubmissionUploadScore(convertScore(score));
+          mutateScores();
         }
         if (detailed_scores) {
           setSubmissionUploadDetailedScores(detailed_scores);
@@ -250,7 +254,7 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
                   <Table
                     data={{
                       caption: "Your Contributions To This Challenge",
-                      head: ["Submitted at", "Method", "EMD Score", "IMA Score"],
+                      head: ["Submitted at", "Method", "EMD Score", "IMA Score", "Heatmaps"],
                       body: scores.reduce((t: Array<any>, s: Score) => {
                         if (s.username !== user.username) {
                           return t;
@@ -276,6 +280,20 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
                                 </Text>
                               )}
                             </Group>,
+                            s.plotBase64 ? (
+                              <Button
+                                size="xs"
+                                variant="light"
+                                onClick={() => {
+                                  setSelectedPlot({ base64: s.plotBase64 as string, method: s.methodName || "Unknown Method" });
+                                  setIsPlotModalOpen(true);
+                                }}
+                              >
+                                View
+                              </Button>
+                            ) : (
+                              "-"
+                            ),
                           ],
                         ];
                       }, []),
@@ -330,6 +348,27 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
                 <Text>Challenge ID</Text>
                 <Text>{challenge.id}</Text>
               </Group>
+              {user && user.username === challenge.creator && (
+                <>
+                  <Divider my="sm" />
+                  <Button
+                    color="red"
+                    variant="outline"
+                    fullWidth
+                    onClick={() => {
+                      if (confirm("Are you sure you want to delete this challenge? This action cannot be undone.")) {
+                        client.delete(`api/challenge/${challenge.id}/delete?username=${user.username}`)
+                          .then(() => {
+                            window.location.href = "/competitions";
+                          })
+                          .catch((err) => console.error(err));
+                      }
+                    }}
+                  >
+                    Delete Challenge
+                  </Button>
+                </>
+              )}
             </Paper>
             <Paper shadow="md" mt="lg" p="sm">
               <Text size="xl" fw="600" ta="center">
@@ -429,6 +468,9 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
                       <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #e0e0e0" }}>
                         {activeMetric === "ima" ? "IMA" : "EMD"}
                       </th>
+                      <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #e0e0e0" }}>
+                        Heatmaps
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -465,6 +507,22 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
                               </Text>
                             )}
                           </Group>
+                        </td>
+                        <td style={{ padding: "8px" }}>
+                          {s.plotBase64 ? (
+                            <Button
+                              size="xs"
+                              variant="light"
+                              onClick={() => {
+                                setSelectedPlot({ base64: s.plotBase64 as string, method: s.methodName || "Unknown Method" });
+                                setIsPlotModalOpen(true);
+                              }}
+                            >
+                              View
+                            </Button>
+                          ) : (
+                            "-"
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -539,6 +597,22 @@ const ChallengeDetail = ({ params }: { params: { challengeId: string } }) => {
               </div>
             </Group>
           </Alert>
+        )}
+      </Modal>
+
+      <Modal
+        opened={isPlotModalOpen}
+        onClose={() => {
+          setIsPlotModalOpen(false);
+          setSelectedPlot(null);
+        }}
+        title={selectedPlot ? `${selectedPlot.method} on ${challenge?.title || "Challenge"}` : "XAI Heatmaps"}
+        size="auto"
+      >
+        {selectedPlot && (
+          <Center>
+            <Image src={`data:image/png;base64,${selectedPlot.base64}`} alt="Heatmaps" />
+          </Center>
         )}
       </Modal>
     </main>

@@ -38,6 +38,7 @@ export interface Score {
   emdStd?: number | null;
   imaScore?: number | null;
   imaStd?: number | null;
+  plotBase64?: string | null;
   status?: string;
 }
 

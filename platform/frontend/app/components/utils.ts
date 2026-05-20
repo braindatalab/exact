@@ -139,6 +139,7 @@ export const convertScore = (score: any) => {
     emdStd: score["emd_std"] || null,
     imaScore: score["ima_score"] || null,
     imaStd: score["ima_std"] || null,
+    plotBase64: score["plot_base64"] || null,
     status: score["status"] || "completed",
   };
 };

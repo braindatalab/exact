@@ -55,9 +55,9 @@ try:
     d = data["linear_1d1p_0.18_uncorrelated"]
     print("[EMD] Daten und Modell geladen.", flush=True)
 
-    batch_size = min(10, len(d.x_train))
-    x_train_batch = d.x_train[:batch_size].to(t.float)
-    y_train_batch = d.y_train[:batch_size]
+    batch_size = min(10, len(d.x_test))
+    x_test_batch = d.x_test[:batch_size].to(t.float)
+    y_test_batch = d.y_test[:batch_size]
 
     print("[EMD] Führe 'exec(xai_method)' aus...", flush=True)
     safe_namespace = {'torch': t, 't': t, 'captum': __import__('captum')}
@@ -70,16 +70,74 @@ try:
     
     XAI_Method = safe_namespace['XAI_Method']
     print("[EMD] Rufe die XAI_Method auf...", flush=True)
-    explanations = XAI_Method(x_train_batch, y_train_batch, model)
+    explanations = XAI_Method(x_test_batch, y_test_batch, model)
     print("[EMD] XAI_Method erfolgreich aufgerufen.", flush=True)
 
     print("[EMD] Berechne EMD-Scores...", flush=True)
-    emd_scores = [continuous_emd(d.masks_train[i], explanations[i].detach().numpy()) for i in range(batch_size)]
+    emd_scores = [continuous_emd(d.masks_test[i], explanations[i].detach().numpy()) for i in range(batch_size)]
     mean_score = np.mean(emd_scores)
     std_score = np.std(emd_scores)
     print(f"EMD Mean: {mean_score:.4f}", flush=True)
     print(f"EMD Std: {std_score:.4f}", flush=True)
     print(f"FINAL_SCORE:{mean_score}", flush=True)
+
+    print("[EMD] Generiere Heatmap-Plot...", flush=True)
+    import matplotlib.pyplot as plt
+    import io
+    import base64
+
+    # Combined ground truth
+    normal_t = [[1,0],[1,1],[1,0]]
+    normal_l = [[1,0],[1,0],[1,1]]
+    combined_mask = np.zeros((8,8))
+    combined_mask[1:4, 1:3] = normal_t
+    combined_mask[4:7, 5:7] = normal_l
+    combined_mask = combined_mask.reshape((8,8))
+
+    plt.style.use('seaborn-v0_8-colorblind')
+    fig, axes = plt.subplots(3, batch_size, figsize=(2 * batch_size, 6))
+    if batch_size == 1:
+        axes = np.expand_dims(axes, 1)
+        
+    use_combined_gt = "translations_rotations" not in data_path and "translations_rotations" not in model_path
+
+    for i in range(batch_size):
+        edge_length = int(np.sqrt(x_test_batch[i].shape[0]))
+        
+        # Row 0: Data
+        data_img = x_test_batch[i].detach().numpy().reshape(edge_length, edge_length)
+        axes[0, i].imshow(data_img, cmap='RdBu_r', vmin=-1, vmax=1)
+        axes[0, i].axis('off')
+        axes[0, i].set_title(f"Sample #{i}", fontsize=10)
+        if i == 0:
+            axes[0, i].text(-0.2, 0.5, 'Data', va='center', ha='right', rotation=90, transform=axes[0, i].transAxes, fontsize=12)
+        
+        # Row 1: Ground Truth
+        if use_combined_gt and edge_length == 8:
+            gt_img = combined_mask
+        else:
+            gt_img = d.masks_test[i].reshape(edge_length, edge_length)
+            
+        axes[1, i].imshow(gt_img, cmap='magma', vmin=0, vmax=1)
+        axes[1, i].axis('off')
+        if i == 0:
+            axes[1, i].text(-0.2, 0.5, 'Ground\nTruth', va='center', ha='right', rotation=90, transform=axes[1, i].transAxes, fontsize=12)
+        
+        # Row 2: XAI Heatmap
+        xai_img = np.abs(explanations[i].detach().numpy()).reshape(edge_length, edge_length)
+        axes[2, i].imshow(xai_img, cmap='magma')
+        axes[2, i].axis('off')
+        if i == 0:
+            axes[2, i].text(-0.2, 0.5, 'Explanation', va='center', ha='right', rotation=90, transform=axes[2, i].transAxes, fontsize=12)
+
+    plt.tight_layout()
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png', bbox_inches='tight')
+    plt.close(fig)
+    buf.seek(0)
+    img_base64 = base64.b64encode(buf.read()).decode('utf-8')
+    print(f"PLOT_DATA_START:{img_base64}:PLOT_DATA_END", flush=True)
+
     print("--- EMD WORKER ENDE ---", flush=True)
 
 except Exception as e:

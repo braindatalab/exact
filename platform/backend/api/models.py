@@ -37,6 +37,8 @@ class Score(models.Model):
     ima_score = models.FloatField(null=True, blank=True)
     ima_std = models.FloatField(null=True, blank=True)
     
+    plot_base64 = models.TextField(null=True, blank=True)
+    
     method_name = models.CharField(max_length=100, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
@@ -76,11 +78,11 @@ class Score(models.Model):
         score_display = " | ".join(scores_str) if scores_str else "No scores"
         return f"User {self.username} - Challenge {self.challenge_id} - {score_display}"
 
-# Challenge model (bleibt unverändert)
 class Challenge(models.Model):
     challenge_id = models.CharField(max_length=100, unique=True, editable=False)
     title = models.CharField(max_length=100)
     description = models.TextField()
+    creator = models.CharField(max_length=150, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
     # Uploads

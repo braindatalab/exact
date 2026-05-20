@@ -12,6 +12,7 @@ class ChallengeForm(forms.Form):
         widget=forms.Textarea,       # mehrzeiliges Textfeld
         max_length=100             # optional: Längenlimit
     )
+    creator = forms.CharField(required=False, max_length=150)
     xai_method = forms.FileField()
     dataset = forms.FileField()
     mlmodel = forms.FileField()

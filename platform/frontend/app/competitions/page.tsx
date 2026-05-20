@@ -57,7 +57,7 @@ const Competitions = () => {
             <Grid w="100%">
               {challenges.map((challenge, i) => (
                 <Grid.Col span={{ base: 12, md: 6, lg: 4 }} key={i}>
-                  <ChallengeCard challenge={challenge} />
+                  <ChallengeCard challenge={challenge} onDelete={(id) => setChallenges((prev) => prev?.filter((c) => c.id !== id) || null)} />
                 </Grid.Col>
               ))}
               <Grid.Col
